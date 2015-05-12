@@ -6,10 +6,10 @@
  */
 {template .view}
     {call aui.form.textField}
-        {param id: 'url' /}
-        {param value: $config ? $config['url'] : null /}
-        {param labelContent: 'url'  /}
-        {param descriptionText: 'Some description for url' /}
-        {param errorTexts: $errors ? $errors['url'] : null /}
+        {param id: 'roomName' /}
+        {param value: $config ? $config['roomName'] : null /}
+        {param labelContent: 'Room Name'  /}
+        {param descriptionText: 'Enter your Cisco Spark room name' /}
+        {param errorTexts: $errors ? $errors['roomName'] : null /}
     {/call}
 {/template}
