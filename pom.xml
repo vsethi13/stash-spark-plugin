@@ -90,6 +90,12 @@
             <artifactId>stash-scm-git-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.cisco.dft.cd.spark.intg.service</groupId>
+            <artifactId>cd-spark-integration-service</artifactId>
+            <version>0.0.2</version>
+        </dependency>
+
     </dependencies>
     <build>
         <plugins>
@@ -124,4 +130,11 @@
         <amps.version>5.0.13</amps.version>
         <plugin.testrunner.version>1.2.3</plugin.testrunner.version>
     </properties>
+    <repositories>
+        <repository>
+            <id>central</id>
+            <name>Cisco Central Repository</name>
+            <url>http://repo-art.cisco.com/artifactory/repo</url>
+        </repository>
+    </repositories>
 </project>
