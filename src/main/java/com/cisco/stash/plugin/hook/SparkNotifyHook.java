@@ -43,8 +43,8 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
         }
     }
     
-    @EventListener
-    public void pullRequestOpened(PullRequestOpenedEvent prEvent) {
-        System.out.println("Pull Request is opened: "+prEvent.getPullRequest().getDescription());
-    }
+//    @EventListener
+//    public void pullRequestOpened(PullRequestOpenedEvent prEvent) {
+//        System.out.println("Pull Request is opened: "+prEvent.getPullRequest().getDescription());
+//    }
 }
