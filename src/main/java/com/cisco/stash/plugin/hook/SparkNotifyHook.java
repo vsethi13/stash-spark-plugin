@@ -18,7 +18,6 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
     private final CommitService commitService;
     private final StashAuthenticationContext stashAuthenticationContext;
     private final NavBuilder navBuilder;
-
     private static final Logger log = LoggerFactory.getLogger(SparkNotifyHook.class);
 
     public SparkNotifyHook(StashAuthenticationContext stashAuthenticationContext, CommitService commitService, NavBuilder navBuilder) {
@@ -42,5 +41,10 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
         if (settings.getString("roomName", "").isEmpty()) {
             errors.addFieldError("roomName", "'Room Name' field is blank, please supply one");
         }
+    }
+    
+    @EventListener
+    public void pullRequestOpened(PullRequestOpenedEvent prEvent) {
+        System.out.println("Pull Request is opened: "+prEvent.getPullRequest().getDescription());
     }
 }
