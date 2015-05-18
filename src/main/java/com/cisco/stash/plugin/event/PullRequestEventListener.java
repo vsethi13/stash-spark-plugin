@@ -3,12 +3,14 @@ package com.cisco.stash.plugin.event;
 import com.atlassian.event.api.EventListener;
 import com.atlassian.stash.event.pull.*;
 import com.atlassian.stash.hook.repository.RepositoryHookService;
+import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestAction;
 import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.setting.Settings;
 import com.atlassian.stash.user.Permission;
 import com.atlassian.stash.user.SecurityService;
+import com.atlassian.stash.user.StashUser;
 import com.atlassian.stash.util.Operation;
 import com.cisco.stash.plugin.hook.Notifier;
 import org.slf4j.Logger;
@@ -42,6 +44,11 @@ public class PullRequestEventListener {
     }
 
     @EventListener
+    public void onPullRequestUnapproved(PullRequestUnapprovedEvent event) {
+        handlePullRequestEvent(event);
+    }
+
+    @EventListener
     public void onPullRequestDeclined(PullRequestDeclinedEvent event) {
         handlePullRequestEvent(event);
     }
@@ -51,12 +58,19 @@ public class PullRequestEventListener {
         handlePullRequestEvent(event);
     }
 
+    @EventListener
+    public void onPullRequestMerged(PullRequestMergedEvent event) {
+        handlePullRequestEvent(event);
+    }
+
+    //get settings to check if the room name is present (check if the hook is enabled or not)
+    //post to the room only if room name exists
     private void handlePullRequestEvent(PullRequestEvent event){
 
         final Repository repository = event.getPullRequest().getToRef().getRepository();
         Settings settings = null;
         try {
-            settings = securityService.withPermission(Permission.REPO_ADMIN, "").call(new Operation<Settings, Exception>() {
+            settings = securityService.withPermission(Permission.REPO_ADMIN, "Access required to get hook settings.").call(new Operation<Settings, Exception>() {
                 @Override
                 public Settings perform() throws Exception {
                     return repositoryHookService.getSettings(repository, Notifier.REPO_HOOK_KEY);
@@ -69,36 +83,22 @@ public class PullRequestEventListener {
         if(settings == null)
             log.info("Settings not found.");
         else {
-            System.out.println("Room name: " + settings.getString("roomName"));
-            if(event.getAction() == PullRequestAction.OPENED)
-                PrOpenedEvent(event);
-            else if(event.getAction() == PullRequestAction.APPROVED)
-                PrApprovedEvent(event);
-            else if(event.getAction() == PullRequestAction.DECLINED)
-                PrDeclinedEvent(event);
-            else if(event.getAction() == PullRequestAction.REOPENED){
-                PrReOpenedEvent(event);
-            }
+            System.out.println("In room: " + settings.getString("roomName"));
+            createPrNotification(event);
         }
     }
 
-    private void PrOpenedEvent(PullRequestEvent event) {
-        System.out.println("Pull Request " + "#" + event.getPullRequest().getId() + " (" + event.getPullRequest().getTitle() + ") " + event.getAction().toString().toLowerCase());
-        System.out.println(event.getUser().getDisplayName());
-    }
-
-    private void PrApprovedEvent(PullRequestEvent event) {
-        System.out.println("Pull Request " + "#" + event.getPullRequest().getId() + " (" + event.getPullRequest().getTitle() + ") " + event.getAction().toString().toLowerCase());
-        System.out.println(event.getUser().getDisplayName());
-    }
-
-    private void PrDeclinedEvent(PullRequestEvent event) {
-        System.out.println("Pull Request " + "#" + event.getPullRequest().getId() + " (" + event.getPullRequest().getTitle() + ") " + event.getAction().toString().toLowerCase());
-        System.out.println(event.getUser().getDisplayName());
-    }
-
-    private void PrReOpenedEvent(PullRequestEvent event) {
-        System.out.println("Pull Request " + "#" + event.getPullRequest().getId() + " (" + event.getPullRequest().getTitle() + ") " + event.getAction().toString().toLowerCase());
-        System.out.println(event.getUser().getDisplayName());
+    //create a notification for a PR related event
+    private void createPrNotification(PullRequestEvent event){
+        StringBuilder notification = new StringBuilder(128);
+        PullRequest pullRequest = event.getPullRequest();
+        Repository repository = pullRequest.getToRef().getRepository();
+        StashUser stashUser = event.getUser();
+        notification.append("Pull Request " + "#" + pullRequest.getId());
+        notification.append(event.getAction().toString().toLowerCase() + " by " + stashUser.getDisplayName() + "[" + stashUser.getEmailAddress() + "] ");
+        notification.append("in " + repository.getProject().getName() + "/" + repository.getName());
+        notification.append("\n");
+        notification.append("Title: " + pullRequest.getTitle());
+        System.out.println(notification);
     }
 }
