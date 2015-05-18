@@ -30,6 +30,8 @@ public class Notifier {
     private final CommitService commitService;
     private final NavBuilder navBuilder;
 
+    public static final String REPO_HOOK_KEY = "com.cisco.stash.plugin.spark-push-notify:spark-notify-hook";
+
     public Notifier(StashAuthenticationContext stashAuthenticationContext, CommitService commitService, NavBuilder navBuilder){
         this.stashAuthenticationContext = stashAuthenticationContext;
         this.commitService = commitService;

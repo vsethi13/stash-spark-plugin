@@ -6,22 +6,29 @@ import com.atlassian.stash.hook.repository.RepositoryHookService;
 import com.atlassian.stash.pull.PullRequestAction;
 import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.repository.RepositoryService;
 import com.atlassian.stash.setting.Settings;
+import com.atlassian.stash.user.Permission;
+import com.atlassian.stash.user.SecurityService;
+import com.atlassian.stash.util.Operation;
+import com.cisco.stash.plugin.hook.Notifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by Sagar on 13/05/15.
  */
 public class PullRequestEventListener {
 
-    private final RepositoryService repositoryService;
-    private final PullRequestService pullRequestService;
-    private final RepositoryHookService repositoryHookService;
+    private PullRequestService pullRequestService;
+    private RepositoryHookService repositoryHookService;
+    private SecurityService securityService;
 
-    public PullRequestEventListener(RepositoryService repositoryService, PullRequestService pullRequestService, RepositoryHookService repositoryHookService){
-        this.repositoryService=repositoryService;
+    private static final Logger log = LoggerFactory.getLogger(PullRequestEventListener.class);
+
+    public PullRequestEventListener(PullRequestService pullRequestService, RepositoryHookService repositoryHookService, SecurityService securityService){
         this.pullRequestService = pullRequestService;
         this.repositoryHookService = repositoryHookService;
+        this.securityService = securityService;
     }
 
     @EventListener
@@ -45,10 +52,22 @@ public class PullRequestEventListener {
     }
 
     private void handlePullRequestEvent(PullRequestEvent event){
-        Repository repository = event.getPullRequest().getToRef().getRepository();
-        Settings settings = repositoryHookService.getSettings(repository, "com.cisco.stash.plugin.spark-push-notify:spark-notify-hook");
+
+        final Repository repository = event.getPullRequest().getToRef().getRepository();
+        Settings settings = null;
+        try {
+            settings = securityService.withPermission(Permission.REPO_ADMIN, "").call(new Operation<Settings, Exception>() {
+                @Override
+                public Settings perform() throws Exception {
+                    return repositoryHookService.getSettings(repository, Notifier.REPO_HOOK_KEY);
+                }
+            });
+        } catch (Exception e) {
+            log.error("Unexpected exception trying to get the hook settings");
+        }
+
         if(settings == null)
-            return;
+            log.info("Settings not found.");
         else {
             System.out.println("Room name: " + settings.getString("roomName"));
             if(event.getAction() == PullRequestAction.OPENED)
@@ -58,28 +77,28 @@ public class PullRequestEventListener {
             else if(event.getAction() == PullRequestAction.DECLINED)
                 PrDeclinedEvent(event);
             else if(event.getAction() == PullRequestAction.REOPENED){
-
+                PrReOpenedEvent(event);
             }
         }
     }
 
     private void PrOpenedEvent(PullRequestEvent event) {
-        System.out.println("Pull Request " + "#" + event.getPullRequest().getId() + " (" + event.getPullRequest().getTitle() + ") " + "opened");
+        System.out.println("Pull Request " + "#" + event.getPullRequest().getId() + " (" + event.getPullRequest().getTitle() + ") " + event.getAction().toString().toLowerCase());
         System.out.println(event.getUser().getDisplayName());
     }
 
     private void PrApprovedEvent(PullRequestEvent event) {
-        System.out.println("Pull Request " + "#" + event.getPullRequest().getId() + " (" + event.getPullRequest().getTitle() + ") " + "approved");
+        System.out.println("Pull Request " + "#" + event.getPullRequest().getId() + " (" + event.getPullRequest().getTitle() + ") " + event.getAction().toString().toLowerCase());
         System.out.println(event.getUser().getDisplayName());
     }
 
     private void PrDeclinedEvent(PullRequestEvent event) {
-        System.out.println("Pull Request " + "#" + event.getPullRequest().getId() + " (" + event.getPullRequest().getTitle() + ") " + "declined");
+        System.out.println("Pull Request " + "#" + event.getPullRequest().getId() + " (" + event.getPullRequest().getTitle() + ") " + event.getAction().toString().toLowerCase());
         System.out.println(event.getUser().getDisplayName());
     }
 
     private void PrReOpenedEvent(PullRequestEvent event) {
-        System.out.println("Pull Request " + "#" + event.getPullRequest().getId() + " (" + event.getPullRequest().getTitle() + ") " + "reopened");
+        System.out.println("Pull Request " + "#" + event.getPullRequest().getId() + " (" + event.getPullRequest().getTitle() + ") " + event.getAction().toString().toLowerCase());
         System.out.println(event.getUser().getDisplayName());
     }
 }
