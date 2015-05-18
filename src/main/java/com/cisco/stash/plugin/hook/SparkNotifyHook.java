@@ -8,8 +8,11 @@ import com.atlassian.stash.nav.NavBuilder;
 import com.atlassian.stash.repository.*;
 import com.atlassian.stash.scm.git.GitRefPattern;
 import com.atlassian.stash.setting.*;
+import com.atlassian.stash.user.Permission;
+import com.atlassian.stash.user.SecurityService;
 import com.atlassian.stash.user.StashAuthenticationContext;
 import com.atlassian.stash.user.StashUser;
+import com.atlassian.stash.util.Operation;
 import com.atlassian.stash.util.PageRequestImpl;
 import com.cisco.stash.plugin.util.Notifier;
 import org.apache.commons.lang.StringUtils;
@@ -22,14 +25,18 @@ import java.util.Map;
 
 public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, RepositorySettingsValidator {
 
-    private final CommitService commitService;
-    private final StashAuthenticationContext stashAuthenticationContext;
-    private final NavBuilder navBuilder;
+    private CommitService commitService;
+    private StashAuthenticationContext stashAuthenticationContext;
+    private RepositoryHookService repositoryHookService;
+    private SecurityService securityService;
+    private NavBuilder navBuilder;
     private static final Logger log = LoggerFactory.getLogger(SparkNotifyHook.class);
 
-    public SparkNotifyHook(StashAuthenticationContext stashAuthenticationContext, CommitService commitService, NavBuilder navBuilder) {
+    public SparkNotifyHook(StashAuthenticationContext stashAuthenticationContext, CommitService commitService, RepositoryHookService repositoryHookService, SecurityService securityService, NavBuilder navBuilder) {
         this.commitService = commitService;
         this.stashAuthenticationContext = stashAuthenticationContext;
+        this.repositoryHookService = repositoryHookService;
+        this.securityService = securityService;
         this.navBuilder = navBuilder;
     }
 
@@ -39,13 +46,21 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
     @Override
     public void postReceive(RepositoryHookContext repositoryHookContext, Collection<RefChange> refChanges) {
 
-        new Notifier().publishNotification(createRefChangeNotification(repositoryHookContext, refChanges));
+        Settings repoSettings = getSettings(repositoryHookContext.getRepository());
+        if(repoSettings != null) {
+            new Notifier().publishNotification(repoSettings.getString(Notifier.ROOM_ID), createRefChangeNotification(repositoryHookContext, refChanges));
+        }
     }
 
     @Override
     public void validate(Settings settings, SettingsValidationErrors errors, Repository repository) {
-        if (settings.getString("roomName", "").isEmpty()) {
-            errors.addFieldError("roomName", "'Room Name' field is blank, please supply one");
+        if (settings.getString(Notifier.ROOM_ID, "").isEmpty()) {
+            errors.addFieldError(Notifier.ROOM_ID, "'Room Id' field is blank, please supply one");
+        }
+
+        if(settings.getString(Notifier.BEARER_TOKEN, "").isEmpty()) {
+            errors.addFieldError(Notifier.BEARER_TOKEN, "'Bearer Token' field is blank, please supply one");
+            //TODO: add machine account to spark room
         }
     }
 
@@ -113,5 +128,25 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
             notification.deleteCharAt(notificationLength-1);
 
         return notification;
+    }
+
+    private Settings getSettings(final Repository repository){
+
+        Settings settings = null;
+        try {
+            settings = securityService.withPermission(Permission.REPO_ADMIN, "Access required to get hook settings.").call(new Operation<Settings, Exception>() {
+                @Override
+                public Settings perform() throws Exception {
+                    return repositoryHookService.getSettings(repository, Notifier.REPO_HOOK_KEY);
+                }
+            });
+        } catch (Exception e) {
+            log.error("Unexpected exception trying to get the hook settings");
+        }
+
+        if(settings == null)
+            log.info("Settings not found.");
+
+        return settings;
     }
 }

@@ -6,10 +6,19 @@
  */
 {template .view}
     {call aui.form.textField}
-        {param id: 'roomName' /}
-        {param value: $config ? $config['roomName'] : null /}
-        {param labelContent: 'Room Name'  /}
-        {param descriptionText: 'Enter your Cisco Spark room name' /}
-        {param errorTexts: $errors ? $errors['roomName'] : null /}
+        {param id: 'roomId' /}
+        {param value: $config ? $config['roomId'] : null /}
+        {param labelContent: 'Room Id'  /}
+        {param descriptionText: 'Enter your Cisco Spark room id' /}
+        {param errorTexts: $errors ? $errors['roomId'] : null /}
     {/call}
+
+    {call aui.form.textField}
+        {param id: 'bearerToken' /}
+        {param value: $config ? $config['bearerToken'] : null /}
+        {param labelContent: 'Bearer Token'  /}
+        {param descriptionText: 'Enter your bearer token' /}
+        {param errorTexts: $errors ? $errors['bearerToken'] : null /}
+    {/call}
+
 {/template}
