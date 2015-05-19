@@ -14,7 +14,8 @@ import com.atlassian.stash.user.StashAuthenticationContext;
 import com.atlassian.stash.user.StashUser;
 import com.atlassian.stash.util.Operation;
 import com.atlassian.stash.util.PageRequestImpl;
-import com.cisco.stash.plugin.util.Notifier;
+import com.cisco.stash.plugin.Notifier;
+import com.cisco.stash.plugin.publisher.SparkPublisher;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,7 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
 
         Settings repoSettings = getSettings(repositoryHookContext.getRepository(), Notifier.REPO_HOOK_KEY);
         if(repoSettings != null) {
-            new Notifier().publishNotification(repoSettings.getString(Notifier.ROOM_ID, ""), createRefChangeNotification(repositoryHookContext, refChanges));
+            new Notifier().pushNotification(repoSettings.getString(Notifier.ROOM_ID, ""), createRefChangeNotification(repositoryHookContext, refChanges));
         }
     }
 
@@ -68,8 +69,9 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
 
         if(settings.getString(Notifier.BEARER_TOKEN, "").isEmpty()) {
             errors.addFieldError(Notifier.BEARER_TOKEN, "'Bearer Token' field is blank, please supply one");
-            //TODO: add machine account to spark room
         }
+
+        SparkPublisher.invite(settings.getString(Notifier.ROOM_ID, ""), settings.getString(Notifier.BEARER_TOKEN, ""));
     }
 
     /**
