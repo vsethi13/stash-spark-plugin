@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Notifier {
 
-    //key for this repository hook
+    //key for this repository hook (groupId.artifactId:hookKey)
     public static final String REPO_HOOK_KEY = "com.cisco.stash.plugin.spark-push-notify:spark-notify-hook";
 
     //field keys from the soy template
@@ -37,5 +37,8 @@ public class Notifier {
         message.setRoomId(roomId);
         message.setActor(actor);
         new SparkIntegrationService().publishMessage(message);
+
+//        System.out.println(roomId);
+//        System.out.println(notification);
     }
 }

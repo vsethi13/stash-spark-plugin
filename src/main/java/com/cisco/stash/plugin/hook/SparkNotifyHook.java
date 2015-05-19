@@ -42,16 +42,24 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
 
     /**
      * Connects to a configured URL to notify of all changes.
+     * @param repositoryHookContext
+     * @param refChanges
      */
     @Override
     public void postReceive(RepositoryHookContext repositoryHookContext, Collection<RefChange> refChanges) {
 
-        Settings repoSettings = getSettings(repositoryHookContext.getRepository());
+        Settings repoSettings = getSettings(repositoryHookContext.getRepository(), Notifier.REPO_HOOK_KEY);
         if(repoSettings != null) {
-            new Notifier().publishNotification(repoSettings.getString(Notifier.ROOM_ID), createRefChangeNotification(repositoryHookContext, refChanges));
+            new Notifier().publishNotification(repoSettings.getString(Notifier.ROOM_ID, ""), createRefChangeNotification(repositoryHookContext, refChanges));
         }
     }
 
+    /**
+     * validates configuration settings of a hook
+     * @param settings
+     * @param errors
+     * @param repository
+     */
     @Override
     public void validate(Settings settings, SettingsValidationErrors errors, Repository repository) {
         if (settings.getString(Notifier.ROOM_ID, "").isEmpty()) {
@@ -64,6 +72,12 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
         }
     }
 
+    /**
+     * creates notification related to addition, updatation (new commits) and deletion of refs on a particular repo
+     * @param repositoryHookContext
+     * @param refChanges
+     * @return
+     */
     private StringBuilder createRefChangeNotification(RepositoryHookContext repositoryHookContext, Collection<RefChange> refChanges){
         StringBuilder notification = new StringBuilder(1024);
         Map<String, String> commitLinks = new HashMap<String, String>();
@@ -130,22 +144,52 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
         return notification;
     }
 
-    private Settings getSettings(final Repository repository){
-
-        Settings settings = null;
+    /**
+     * checks if a hook is enabled on a particular repository or not
+     * @param repository
+     * @param hookKey
+     * @return
+     */
+    private boolean isHookEnabled(final Repository repository, final String hookKey){
         try {
-            settings = securityService.withPermission(Permission.REPO_ADMIN, "Access required to get hook settings.").call(new Operation<Settings, Exception>() {
+            return securityService.withPermission(Permission.REPO_ADMIN, "Access required to check hook's status").call(new Operation<Boolean, Exception>() {
                 @Override
-                public Settings perform() throws Exception {
-                    return repositoryHookService.getSettings(repository, Notifier.REPO_HOOK_KEY);
+                public Boolean perform() throws Exception {
+                    return repositoryHookService.getByKey(repository, hookKey).isEnabled();
                 }
             });
         } catch (Exception e) {
-            log.error("Unexpected exception trying to get the hook settings");
+            log.error("Unexpected exception trying to get hold of the hook");
         }
+        return false;
+    }
 
-        if(settings == null)
-            log.info("Settings not found.");
+    /**
+     * get the settings of an hook that is enabled on a particular repository
+     * @param repository
+     * @param hookKey
+     * @return
+     */
+    private Settings getSettings(final Repository repository, final String hookKey) {
+
+        Settings settings = null;
+        if (isHookEnabled(repository, hookKey)) {
+            try {
+                settings = securityService.withPermission(Permission.REPO_ADMIN, "Access required to get hook settings.").call(new Operation<Settings, Exception>() {
+                    @Override
+                    public Settings perform() throws Exception {
+                        return repositoryHookService.getSettings(repository, hookKey);
+                    }
+                });
+            } catch (Exception e) {
+                log.error("Unexpected exception trying to get the hook settings");
+            }
+
+            if (settings == null)
+                log.error("Settings not found");
+        } else {
+            log.error(hookKey + " is not enabled on " + repository.getName());
+        }
 
         return settings;
     }
