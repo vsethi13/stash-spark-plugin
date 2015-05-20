@@ -12,7 +12,7 @@ import com.atlassian.stash.user.Permission;
 import com.atlassian.stash.user.SecurityService;
 import com.atlassian.stash.user.StashUser;
 import com.atlassian.stash.util.Operation;
-import com.cisco.stash.plugin.hook.Notifier;
+import com.cisco.stash.plugin.Notifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,37 +68,94 @@ public class PullRequestEventListener {
     private void handlePullRequestEvent(PullRequestEvent event){
 
         final Repository repository = event.getPullRequest().getToRef().getRepository();
-        Settings settings = null;
-        try {
-            settings = securityService.withPermission(Permission.REPO_ADMIN, "Access required to get hook settings.").call(new Operation<Settings, Exception>() {
-                @Override
-                public Settings perform() throws Exception {
-                    return repositoryHookService.getSettings(repository, Notifier.REPO_HOOK_KEY);
-                }
-            });
-        } catch (Exception e) {
-            log.error("Unexpected exception trying to get the hook settings");
-        }
+        Settings repoSettings = null;
 
-        if(settings == null)
+        repoSettings = getSettings(repository, Notifier.REPO_HOOK_KEY);
+//        try {
+//            settings = securityService.withPermission(Permission.REPO_ADMIN, "Access required to get hook settings.").call(new Operation<Settings, Exception>() {
+//                @Override
+//                public Settings perform() throws Exception {
+//                    return repositoryHookService.getSettings(repository, Notifier.REPO_HOOK_KEY);
+//                }
+//            });
+//        } catch (Exception e) {
+//            log.error("Unexpected exception trying to get the hook settings");
+//        }
+
+        if(repoSettings == null)
             log.info("Settings not found.");
         else {
-            System.out.println("In room: " + settings.getString("roomName"));
-            createPrNotification(event);
+            new Notifier().pushNotification(repoSettings.getString(Notifier.ROOM_ID, ""), createPrNotification(event));
         }
     }
 
-    //create a notification for a PR related event
-    private void createPrNotification(PullRequestEvent event){
+    /**
+     * create a notification for a PR related event
+     * @param event
+     * @return
+     */
+    private StringBuilder createPrNotification(PullRequestEvent event){
         StringBuilder notification = new StringBuilder(128);
         PullRequest pullRequest = event.getPullRequest();
         Repository repository = pullRequest.getToRef().getRepository();
         StashUser stashUser = event.getUser();
         notification.append("Pull Request " + "#" + pullRequest.getId());
-        notification.append(event.getAction().toString().toLowerCase() + " by " + stashUser.getDisplayName() + "[" + stashUser.getEmailAddress() + "] ");
+        notification.append(" " + event.getAction().toString().toLowerCase() + " by " + stashUser.getDisplayName() + "[" + stashUser.getEmailAddress() + "] ");
         notification.append("in " + repository.getProject().getName() + "/" + repository.getName());
         notification.append("\n");
         notification.append("Title: " + pullRequest.getTitle());
-        System.out.println(notification);
+        return notification;
+    }
+
+    //TODO: code repetition below from of methods from SparkNotifyHook class.. make a component out of it
+
+    /**
+     * checks if a hook is enabled on a particular repository or not
+     * @param repository
+     * @param hookKey
+     * @return
+     */
+    public boolean isHookEnabled(final Repository repository, final String hookKey){
+        try {
+            return securityService.withPermission(Permission.REPO_ADMIN, "Access required to check hook's status").call(new Operation<Boolean, Exception>() {
+                @Override
+                public Boolean perform() throws Exception {
+                    return repositoryHookService.getByKey(repository, hookKey).isEnabled();
+                }
+            });
+        } catch (Exception e) {
+            log.error("Unexpected exception trying to get hold of the hook");
+        }
+        return false;
+    }
+
+    /**
+     * get the settings of an hook that is enabled on a particular repository
+     * @param repository
+     * @param hookKey
+     * @return
+     */
+    public Settings getSettings(final Repository repository, final String hookKey) {
+
+        Settings settings = null;
+        if (isHookEnabled(repository, hookKey)) {
+            try {
+                settings = securityService.withPermission(Permission.REPO_ADMIN, "Access required to get hook settings.").call(new Operation<Settings, Exception>() {
+                    @Override
+                    public Settings perform() throws Exception {
+                        return repositoryHookService.getSettings(repository, hookKey);
+                    }
+                });
+            } catch (Exception e) {
+                log.error("Unexpected exception trying to get the hook settings");
+            }
+
+            if (settings == null)
+                log.error("Settings not found");
+        } else {
+            log.error(hookKey + " is not enabled on " + repository.getName());
+        }
+
+        return settings;
     }
 }

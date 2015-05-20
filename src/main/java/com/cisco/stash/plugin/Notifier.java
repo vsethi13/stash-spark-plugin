@@ -1,6 +1,7 @@
 package com.cisco.stash.plugin;
 
 import com.cisco.stash.plugin.publisher.IPublisher;
+import com.cisco.stash.plugin.publisher.LogPublisher;
 import com.cisco.stash.plugin.publisher.SparkPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
