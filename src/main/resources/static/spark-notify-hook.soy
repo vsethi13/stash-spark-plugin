@@ -5,11 +5,29 @@
  * @param? errors
  */
 {template .view}
+
     {call aui.form.textField}
-        {param id: 'roomName' /}
-        {param value: $config ? $config['roomName'] : null /}
-        {param labelContent: 'Room Name'  /}
-        {param descriptionText: 'Enter your Cisco Spark room name' /}
-        {param errorTexts: $errors ? $errors['roomName'] : null /}
+        {param id: 'roomId' /}
+        {param isRequired: true /}
+        {param value: $config ? $config['roomId'] : null /}
+        {param labelContent: 'Spark Room ID'  /}
+        {param descriptionText: 'Cisco Spark\'s room ID' /}
+        {param errorTexts: $errors ? $errors['roomId'] : null /}
     {/call}
+
+    {call aui.form.textField}
+        {param id: 'bearerToken' /}
+        {param isRequired: true /}
+        {param value: $config ? $config['bearerToken'] : null /}
+        {param labelContent: 'Bearer Token'  /}
+        {param descriptionText: 'Bearer token of the room\'s moderator' /}
+        {param errorTexts: $errors ? $errors['bearerToken'] : null /}
+    {/call}
+
+    <br>
+    Specify the Cisco Spark room to receive notifications about pushes and merges.
+    The moderator of the room will have to provide his/her 'bearer token' to allow Stash to post in the room.
+    <br><br>
+    Need help getting any of the above values? <a href="https://cisco.jiveon.com/docs/DOC-58263" target="_blank">Click here</a>
+
 {/template}

@@ -4,10 +4,10 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.cisco.stash.plugin</groupId>
     <artifactId>spark-push-notify</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <organization>
-        <name>Example Company</name>
-        <url>http://www.example.com/</url>
+        <name>Cisco Systems</name>
+        <url>http://www.cisco.com/</url>
     </organization>
     <name>spark-push-notify</name>
     <description>This is the com.cisco.stash.plugin:spark-push-notify plugin for Atlassian Stash.</description>
@@ -90,6 +90,12 @@
             <artifactId>stash-scm-git-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.cisco.dft.cd.spark.intg.service</groupId>
+            <artifactId>cd-spark-integration-service</artifactId>
+            <version>0.0.4</version>
+        </dependency>
+
     </dependencies>
     <build>
         <plugins>
@@ -124,4 +130,11 @@
         <amps.version>5.0.13</amps.version>
         <plugin.testrunner.version>1.2.3</plugin.testrunner.version>
     </properties>
+    <repositories>
+        <repository>
+            <id>central</id>
+            <name>Cisco Central Repository</name>
+            <url>http://repo-art.cisco.com/artifactory/repo</url>
+        </repository>
+    </repositories>
 </project>
