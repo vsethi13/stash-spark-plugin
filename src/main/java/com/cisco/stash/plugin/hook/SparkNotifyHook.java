@@ -92,17 +92,33 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
         notification.append("at " + "\"" + repository.getProject().getName() + "/" + repository.getName() + "\"");
         notification.append("\n");
 
+        String refType;
+        String displayRefId;
+
         for(RefChange refChange : refChanges){
 
+            refType = RefType.DEFAULT;
+            displayRefId = refChange.getRefId();
+
+            if(getRefType(refChange).equals(RefType.BRANCH)){
+                refType = RefType.BRANCH;
+                displayRefId = StringUtils.removeStart(refChange.getRefId(), GitRefPattern.HEADS.getPath());
+            }
+
+            else if(getRefType(refChange).equals(RefType.TAG)){
+                refType = RefType.TAG;
+                displayRefId = StringUtils.removeStart(refChange.getRefId(), GitRefPattern.TAGS.getPath());
+            }
+
             if (refChange.getType() == RefChangeType.ADD) {
-                notification.append("New " + getRefType(refChange) + " \"" + StringUtils.removeStart(refChange.getRefId(), GitRefPattern.HEADS.getPath()) + "\"" + " has been added to the repo");
-                addedRefs.put(StringUtils.removeStart(refChange.getRefId(), GitRefPattern.HEADS.getPath()), navBuilder.repo(repository).browse().atRevision(refChange.getRefId()).buildAbsolute());
+                notification.append("New " + refType + " \"" + displayRefId + "\"" + " has been added to the repo");
+                addedRefs.put(displayRefId, navBuilder.repo(repository).browse().atRevision(refChange.getRefId()).buildAbsolute());
                 notification.append("\n");
             } else if (refChange.getType() == RefChangeType.DELETE) {
-                notification.append("The " + getRefType(refChange) + " \"" + StringUtils.removeStart(refChange.getRefId(), GitRefPattern.HEADS.getPath()) + "\"" + " has been deleted from the repo");
+                notification.append("The " + refType + " \"" + displayRefId + "\"" + " has been deleted from the repo");
                 notification.append("\n");
             } else if (refChange.getType() == RefChangeType.UPDATE) {
-                notification.append("On " + getRefType(refChange) + " \"" + StringUtils.removeStart(refChange.getRefId(), GitRefPattern.HEADS.getPath()) + "\"" + ":");
+                notification.append("On " + refType + " \"" + displayRefId + "\"" + ":");
                 notification.append("\n");
 
                 CommitsBetweenRequest commitsBetweenRequest;
