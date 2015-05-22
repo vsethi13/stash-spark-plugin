@@ -131,7 +131,7 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
                 //TODO: limit amount of commit info to be displayed
                 for (Commit commit : commitService.getCommitsBetween(commitsBetweenRequest, new PageRequestImpl(0, 10)).getValues()) {
                     notification.append("- " + commit.getMessage() + "(" + commit.getDisplayId() + ") ");
-                    notification.append("@ " + commit.getAuthorTimestamp());
+//                    notification.append("@ " + commit.getAuthorTimestamp());
                     notification.append("\n");
                     commitLinks.put(commit.getDisplayId(), navBuilder.repo(repository).commit(commit.getId()).buildConfigured());
                 }
