@@ -54,6 +54,11 @@ public class PullRequestEventListener {
     }
 
     @EventListener
+    public void onPullRequestUpdated(PullRequestUpdatedEvent event) {
+        handlePullRequestEvent(event);
+    }
+
+    @EventListener
     public void onPullRequestMerged(PullRequestMergedEvent event) {
         handlePullRequestEvent(event);
     }
