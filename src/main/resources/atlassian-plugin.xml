@@ -10,7 +10,12 @@
   </plugin-info>
   <!-- add our i18n resource -->
   <resource type="i18n" name="i18n" location="spark-push-notify"/>
+
+  <!-- Event listener -->
   <component key="PullRequestEventListener" class="com.cisco.stash.plugin.event.PullRequestEventListener"/>
+
+  <!-- My component for repo settings -->
+  <component key="settingsRetriever" class="com.cisco.stash.plugin.service.ConcreteSettingsService" />
 
   <repository-hook name="Cisco Spark Push Notification" i18n-name-key="spark-notify-hook.name" key="spark-notify-hook" class="com.cisco.stash.plugin.hook.SparkNotifyHook">
     <description key="spark-notify-hook.description">Sends a notice to the specified Cisco Spark room whenever someone pushes to the repository.</description>
