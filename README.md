@@ -9,11 +9,12 @@ Action Items:
 	- [Done] ref updation (commits and merge)
 	- [Done] commit info
 	- [ToDo] Pull Request activity on that repo
+	- [ToDo] Limit commit info (when it gets huge)
 
-- [ToDo] Implement a UI to get Cisco Spark configuration details (room name)
+- [Done] Implement a UI to get Cisco Spark configuration details (room name)
 
-- [ToDo] Channel all the notifications to the supplied Cisco Spark room
+- [Done] Channel all the notifications to the supplied Cisco Spark room
 
-- [ToDo] Integrate with Spark API SDK to push notifications to a Spark room
+- [Done] Integrate with Spark API SDK to push notifications to a Spark room
 
-- [ToDo] Explore difference in implementation of different kinds of refs [branch vs. tag]
+- [Done] Explore difference in implementation of different kinds of refs [branch vs. tag]

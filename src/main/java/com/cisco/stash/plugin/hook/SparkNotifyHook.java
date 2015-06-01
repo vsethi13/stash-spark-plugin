@@ -15,6 +15,7 @@ import com.atlassian.stash.user.StashUser;
 import com.atlassian.stash.util.Operation;
 import com.atlassian.stash.util.PageRequestImpl;
 import com.cisco.stash.plugin.Notifier;
+import com.cisco.stash.plugin.pojo.RefType;
 import com.cisco.stash.plugin.publisher.SparkPublisher;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -86,23 +87,38 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
         Map<String, String> addedRefs = new HashMap<String, String>();
         StashUser stashUser = stashAuthenticationContext.getCurrentUser();
         Repository repository = repositoryHookContext.getRepository();
-        notification.append(stashUser.getDisplayName() + "[" + stashUser.getEmailAddress() + "] ");
-        notification.append("committed to " + refChanges.size() + " branch(es) ");
-        notification.append("at " + repository.getProject().getName() + "/" + repository.getName());
+        notification.append(stashUser.getDisplayName() + " ");
+        notification.append("committed to " + refChanges.size() +  ((refChanges.size() > 1) ? " branches " : " branch "));
+        notification.append("at " + "\"" + repository.getProject().getName() + "/" + repository.getName() + "\"");
         notification.append("\n");
 
+        String refType;
+        String displayRefId;
+
         for(RefChange refChange : refChanges){
-            if(refChange.getType() == RefChangeType.ADD){
-                notification.append("New ref " + StringUtils.removeStart(refChange.getRefId(), GitRefPattern.HEADS.getPath()) + " has been added to the repo");
-                addedRefs.put(StringUtils.removeStart(refChange.getRefId(), GitRefPattern.HEADS.getPath()), navBuilder.repo(repository).browse().atRevision(refChange.getRefId()).buildAbsolute());
-                notification.append("\n");
+
+            refType = RefType.DEFAULT;
+            displayRefId = refChange.getRefId();
+
+            if(getRefType(refChange).equals(RefType.BRANCH)){
+                refType = RefType.BRANCH;
+                displayRefId = StringUtils.removeStart(refChange.getRefId(), GitRefPattern.HEADS.getPath());
             }
-            else if(refChange.getType() == RefChangeType.DELETE){
-                notification.append("The ref " + StringUtils.removeStart(refChange.getRefId(), GitRefPattern.HEADS.getPath()) + " has been deleted from the repo");
-                notification.append("\n");
+
+            else if(getRefType(refChange).equals(RefType.TAG)){
+                refType = RefType.TAG;
+                displayRefId = StringUtils.removeStart(refChange.getRefId(), GitRefPattern.TAGS.getPath());
             }
-            else if(refChange.getType() == RefChangeType.UPDATE){
-                notification.append("On ref " + StringUtils.removeStart(refChange.getRefId(), GitRefPattern.HEADS.getPath()) + ":");
+
+            if (refChange.getType() == RefChangeType.ADD) {
+                notification.append("New " + refType + " \"" + displayRefId + "\"" + " has been added to the repo");
+                addedRefs.put(displayRefId, navBuilder.repo(repository).browse().atRevision(refChange.getRefId()).buildAbsolute());
+                notification.append("\n");
+            } else if (refChange.getType() == RefChangeType.DELETE) {
+                notification.append("The " + refType + " \"" + displayRefId + "\"" + " has been deleted from the repo");
+                notification.append("\n");
+            } else if (refChange.getType() == RefChangeType.UPDATE) {
+                notification.append("On " + refType + " \"" + displayRefId + "\"" + ":");
                 notification.append("\n");
 
                 CommitsBetweenRequest commitsBetweenRequest;
@@ -115,13 +131,14 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
                 //TODO: limit amount of commit info to be displayed
                 for (Commit commit : commitService.getCommitsBetween(commitsBetweenRequest, new PageRequestImpl(0, 10)).getValues()) {
                     notification.append("- " + commit.getMessage() + "(" + commit.getDisplayId() + ") ");
-                    notification.append("@ " + commit.getAuthorTimestamp());
+//                    notification.append("@ " + commit.getAuthorTimestamp());
                     notification.append("\n");
                     commitLinks.put(commit.getDisplayId(), navBuilder.repo(repository).commit(commit.getId()).buildConfigured());
                 }
             }
+
         }
-        notification.append("Repo URL: " + navBuilder.repo(repository).buildConfigured());
+        notification.append("Repo URL: \n" + navBuilder.repo(repository).buildConfigured());
         notification.append("\n");
         if(commitLinks.size() > 0) {
             notification.append("Commit URL(s): \n");
@@ -144,6 +161,19 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
             notification.deleteCharAt(notificationLength-1);
 
         return notification;
+    }
+
+    /**
+     * returns the type of the ref in question
+     * @param ref
+     * @return
+     */
+    private String getRefType(RefChange ref){
+        if (ref.getRefId().startsWith(GitRefPattern.HEADS.getPath()))
+            return RefType.BRANCH;
+        else if(ref.getRefId().startsWith(GitRefPattern.TAGS.getPath()))
+            return RefType.TAG;
+        return RefType.DEFAULT;
     }
 
     /**
