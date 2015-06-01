@@ -2,6 +2,7 @@ package com.cisco.stash.plugin.event;
 
 import com.atlassian.event.api.EventListener;
 import com.atlassian.stash.event.pull.*;
+import com.atlassian.stash.nav.NavBuilder;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.setting.Settings;
@@ -17,12 +18,14 @@ import org.slf4j.LoggerFactory;
 public class PullRequestEventListener {
 
     private SettingsService settingsService;
+    private NavBuilder navBuilder;
 
     private static final Logger log = LoggerFactory.getLogger(PullRequestEventListener.class);
 
 
-    public PullRequestEventListener(SettingsService settingsService) {
+    public PullRequestEventListener(SettingsService settingsService, NavBuilder navBuilder) {
         this.settingsService = settingsService;
+        this.navBuilder = navBuilder;
     }
 
     @EventListener
@@ -82,10 +85,12 @@ public class PullRequestEventListener {
         Repository repository = pullRequest.getToRef().getRepository();
         StashUser stashUser = event.getUser();
         notification.append("Pull Request " + "#" + pullRequest.getId());
-        notification.append(" " + event.getAction().toString().toLowerCase() + " by " + stashUser.getDisplayName() + "[" + stashUser.getEmailAddress() + "] ");
+        notification.append(" " + event.getAction().toString().toLowerCase() + " by " + stashUser.getDisplayName() + " ");
         notification.append("in " + repository.getProject().getName() + "/" + repository.getName());
         notification.append("\n");
         notification.append("Title: " + pullRequest.getTitle());
+        notification.append("\n");
+        notification.append("URL: " + navBuilder.repo(repository).pullRequest(pullRequest.getId()).buildAbsolute());
         return notification;
     }
 }
