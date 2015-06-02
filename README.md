@@ -8,7 +8,7 @@ Action Items:
 	- [Done] ref deletion
 	- [Done] ref updation (commits and merge)
 	- [Done] commit info
-	- [ToDo] Pull Request activity on that repo
+	- [Done] Pull Request activity on that repo
 	- [ToDo] Limit commit info (when it gets huge)
 
 - [Done] Implement a UI to get Cisco Spark configuration details (room name)
