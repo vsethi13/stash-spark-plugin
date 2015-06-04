@@ -4,6 +4,7 @@ import com.atlassian.event.api.EventListener;
 import com.atlassian.stash.event.pull.*;
 import com.atlassian.stash.nav.NavBuilder;
 import com.atlassian.stash.pull.PullRequest;
+import com.atlassian.stash.pull.PullRequestParticipant;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.setting.Settings;
 import com.atlassian.stash.user.StashUser;
@@ -11,6 +12,11 @@ import com.cisco.stash.plugin.Notifier;
 import com.cisco.stash.plugin.service.SettingsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by Sagar on 13/05/15.
@@ -95,6 +101,28 @@ public class PullRequestEventListener {
         notification.append("\n");
         notification.append("Title: " + pullRequest.getTitle());
         notification.append("\n");
+        //Getting PR reviewers info:
+        Set<PullRequestParticipant> pullRequestParticipants = pullRequest.getReviewers();
+        if(pullRequestParticipants.size() > 0) {
+            notification.append(pullRequestParticipants.size() > 1 ? "Reviewers: " : "Reviewer: ");
+
+            /*
+            Java 8 still unsupported by atlassian sdk :/
+            Use the following commented code when we get the support
+             */
+//            notification.append(pullRequestParticipants.stream()
+//                    .map(PullRequestParticipant::getUser)
+//                    .map(StashUser::getDisplayName)
+//                    .collect(Collectors.joining(", ")));
+
+            Iterator<PullRequestParticipant> iterator = pullRequestParticipants.iterator();
+            String delim = "";
+            while (iterator.hasNext()){
+                notification.append(delim).append(iterator.next().getUser().getDisplayName());
+                delim = ", ";
+            }
+            notification.append("\n");
+        }
         notification.append("URL: " + navBuilder.repo(repository).pullRequest(pullRequest.getId()).buildAbsolute());
         return notification;
     }
