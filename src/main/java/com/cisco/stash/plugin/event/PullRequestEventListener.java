@@ -1,9 +1,11 @@
 package com.cisco.stash.plugin.event;
 
 import com.atlassian.event.api.EventListener;
+import com.atlassian.stash.comment.CommentAction;
 import com.atlassian.stash.event.pull.*;
 import com.atlassian.stash.nav.NavBuilder;
 import com.atlassian.stash.pull.PullRequest;
+import com.atlassian.stash.pull.PullRequestAction;
 import com.atlassian.stash.pull.PullRequestParticipant;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.setting.Settings;
@@ -13,10 +15,8 @@ import com.cisco.stash.plugin.service.SettingsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Created by Sagar on 13/05/15.
@@ -69,6 +69,11 @@ public class PullRequestEventListener {
         handlePullRequestEvent(event);
     }
 
+    @EventListener
+    public void onPullRequestCommented(PullRequestCommentEvent event) {
+        handlePullRequestEvent(event);
+    }
+
     //get settings to check if the room name is present (check if the hook is enabled or not)
     //post to the room only if hook is enabled and room name exists
     private void handlePullRequestEvent(PullRequestEvent event){
@@ -95,16 +100,31 @@ public class PullRequestEventListener {
         PullRequest pullRequest = event.getPullRequest();
         Repository repository = pullRequest.getToRef().getRepository();
         StashUser stashUser = event.getUser();
-        notification.append("Pull Request " + "#" + pullRequest.getId());
-        notification.append(" " + event.getAction().toString().toLowerCase() + " by " + stashUser.getDisplayName() + " ");
-        notification.append("in " + repository.getProject().getName() + "/" + repository.getName());
-        notification.append("\n");
-        notification.append("Title: " + pullRequest.getTitle());
-        notification.append("\n");
-        //Getting PR reviewers info:
-        Set<PullRequestParticipant> pullRequestParticipants = pullRequest.getReviewers();
-        if(pullRequestParticipants.size() > 0) {
-            notification.append(pullRequestParticipants.size() > 1 ? "Reviewers: " : "Reviewer: ");
+
+        //If event is related to a PR comment
+        if(event.getAction() == PullRequestAction.COMMENTED) {
+            PullRequestCommentEvent commentEvent = (PullRequestCommentEvent) event;
+            notification.append(stashUser.getDisplayName() + " " + commentEvent.getCommentAction().toString().toLowerCase());
+            notification.append(commentEvent.getCommentAction().toString().equals(String.valueOf(CommentAction.REPLIED)) ? " with a comment" : " a comment");
+            notification.append(" on pull request " + "#" + pullRequest.getId());
+            notification.append(" in \"" + repository.getProject().getName() + "/" + repository.getName() + "\"");
+            notification.append("\n");
+            notification.append("Comment: " + commentEvent.getComment().getText());
+            notification.append("\n");
+
+        //for all other events other than "COMMENT" event
+        } else {
+            notification.append("Pull Request " + "#" + pullRequest.getId());
+            notification.append(" " + event.getAction().toString().toLowerCase() + " by " + stashUser.getDisplayName() + " ");
+            notification.append("in \"" + repository.getProject().getName() + "/" + repository.getName() + "\"");
+            notification.append("\n");
+            notification.append("Title: " + pullRequest.getTitle());
+            notification.append("\n");
+
+            //Getting PR reviewers info:
+            Set<PullRequestParticipant> pullRequestParticipants = pullRequest.getReviewers();
+            if(pullRequestParticipants.size() > 0) {
+                notification.append(pullRequestParticipants.size() > 1 ? "Reviewers: " : "Reviewer: ");
 
             /*
             Java 8 still unsupported by atlassian sdk :/
@@ -115,13 +135,14 @@ public class PullRequestEventListener {
 //                    .map(StashUser::getDisplayName)
 //                    .collect(Collectors.joining(", ")));
 
-            Iterator<PullRequestParticipant> iterator = pullRequestParticipants.iterator();
-            String delim = "";
-            while (iterator.hasNext()){
-                notification.append(delim).append(iterator.next().getUser().getDisplayName());
-                delim = ", ";
+                Iterator<PullRequestParticipant> iterator = pullRequestParticipants.iterator();
+                String delim = "";
+                while (iterator.hasNext()){
+                    notification.append(delim).append(iterator.next().getUser().getDisplayName());
+                    delim = ", ";
+                }
+                notification.append("\n");
             }
-            notification.append("\n");
         }
         notification.append("URL: " + navBuilder.repo(repository).pullRequest(pullRequest.getId()).buildAbsolute());
         return notification;
