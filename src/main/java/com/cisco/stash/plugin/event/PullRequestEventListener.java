@@ -8,10 +8,12 @@ import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestAction;
 import com.atlassian.stash.pull.PullRequestParticipant;
 import com.atlassian.stash.repository.Repository;
+import com.atlassian.stash.scm.git.GitRefPattern;
 import com.atlassian.stash.setting.Settings;
 import com.atlassian.stash.user.StashUser;
 import com.cisco.stash.plugin.Notifier;
 import com.cisco.stash.plugin.service.SettingsService;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +65,11 @@ public class PullRequestEventListener {
     public void onPullRequestUpdated(PullRequestUpdatedEvent event) {
         handlePullRequestEvent(event);
     }
+
+//    @EventListener
+//    public void onPullRequestRescoped(PullRequestRescopedEvent event) {
+//        handlePullRequestEvent(event);
+//    }
 
     @EventListener
     public void onPullRequestMerged(PullRequestMergedEvent event) {
@@ -119,6 +126,9 @@ public class PullRequestEventListener {
             notification.append("in \"" + repository.getProject().getName() + "/" + repository.getName() + "\"");
             notification.append("\n");
             notification.append("Title: " + pullRequest.getTitle());
+            notification.append("\n");
+            notification.append("Scope: " + StringUtils.removeStart(pullRequest.getFromRef().getId(), GitRefPattern.HEADS.getPath()) + " -> " +
+                    StringUtils.removeStart(pullRequest.getToRef().getId(), GitRefPattern.HEADS.getPath()));
             notification.append("\n");
 
             //Getting PR reviewers info:
