@@ -35,6 +35,7 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
     private NavBuilder navBuilder;
     private SettingsService settingsService;
 
+    private static final String MERGE_PR_COMMIT_MSG = "Merge pull request #";
     private static final Logger log = LoggerFactory.getLogger(SparkNotifyHook.class);
 
     public SparkNotifyHook(StashAuthenticationContext stashAuthenticationContext, CommitService commitService, NavBuilder navBuilder, SettingsService settingsService) {
@@ -54,7 +55,9 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
 
         Settings repoSettings = settingsService.getSettings(repositoryHookContext.getRepository(), Notifier.REPO_HOOK_KEY);
         if(repoSettings != null) {
-            new Notifier().pushNotification(repoSettings.getString(Notifier.ROOM_ID, ""), createRefChangeNotification(repositoryHookContext, refChanges));
+            StringBuilder message = createRefChangeNotification(repositoryHookContext, refChanges);
+            if(message != null)
+                new Notifier().pushNotification(repoSettings.getString(Notifier.ROOM_ID, ""), message);
         }
     }
 
@@ -132,6 +135,9 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
                 //TODO: do something about the hardcoded literals
                 //TODO: limit amount of commit info to be displayed
                 for (Commit commit : commitService.getCommitsBetween(commitsBetweenRequest, new PageRequestImpl(0, 10)).getValues()) {
+                    //Don't publish the notification if it's a PR merge
+                    if(commit.getMessage().startsWith(MERGE_PR_COMMIT_MSG))
+                        return null;
                     notification.append("- " + commit.getMessage() + " (" + commit.getDisplayId() + ") ");
 //                    notification.append("@ " + commit.getAuthorTimestamp());
                     notification.append("\n");

@@ -103,7 +103,7 @@ public class PullRequestEventListener {
      * @return
      */
     private StringBuilder createPrNotification(PullRequestEvent event){
-        StringBuilder notification = new StringBuilder(128);
+        StringBuilder notification = new StringBuilder(256);
         PullRequest pullRequest = event.getPullRequest();
         Repository repository = pullRequest.getToRef().getRepository();
         StashUser stashUser = event.getUser();
