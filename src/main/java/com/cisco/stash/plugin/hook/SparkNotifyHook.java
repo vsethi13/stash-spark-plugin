@@ -13,6 +13,7 @@ import com.atlassian.stash.user.SecurityService;
 import com.atlassian.stash.user.StashAuthenticationContext;
 import com.atlassian.stash.user.StashUser;
 import com.atlassian.stash.util.Operation;
+import com.atlassian.stash.util.Page;
 import com.atlassian.stash.util.PageRequestImpl;
 import com.cisco.stash.plugin.Notifier;
 import com.cisco.stash.plugin.pojo.RefType;
@@ -21,9 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, RepositorySettingsValidator {
 
@@ -32,7 +31,12 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
     private RepositoryHookService repositoryHookService;
     private SecurityService securityService;
     private NavBuilder navBuilder;
+
+    private static final int MAX_COMMITS_TO_SHOW = 5;
+    private static final int MAX_COMMITS = 15;
     private static final Logger log = LoggerFactory.getLogger(SparkNotifyHook.class);
+
+    private static final PageRequestImpl PAGE_REQUEST = new PageRequestImpl(0, MAX_COMMITS);
 
     public SparkNotifyHook(StashAuthenticationContext stashAuthenticationContext, CommitService commitService, RepositoryHookService repositoryHookService, SecurityService securityService, NavBuilder navBuilder) {
         this.commitService = commitService;
@@ -127,13 +131,21 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
                         .exclude(refChange.getFromHash())
                         .build();
 
-                //TODO: do something about the hardcoded literals
-                //TODO: limit amount of commit info to be displayed
-                for (Commit commit : commitService.getCommitsBetween(commitsBetweenRequest, new PageRequestImpl(0, 10)).getValues()) {
+                Page<Commit> commits = commitService.getCommitsBetween(commitsBetweenRequest, PAGE_REQUEST);
+                SortedMap<Integer, Commit> commitMap = commits.getOrdinalIndexedValues();
+                int reverseCommitCounter = MAX_COMMITS_TO_SHOW;
+                while(reverseCommitCounter > 0){
+                    Commit commit = commitMap.get(Integer.valueOf(reverseCommitCounter));
                     notification.append("- " + commit.getMessage() + "(" + commit.getDisplayId() + ") ");
 //                    notification.append("@ " + commit.getAuthorTimestamp());
                     notification.append("\n");
                     commitLinks.put(commit.getDisplayId(), navBuilder.repo(repository).commit(commit.getId()).buildConfigured());
+                    reverseCommitCounter--;
+                }
+                if(commits.getSize() > MAX_COMMITS_TO_SHOW) {
+                    int moreCommits = commits.getSize() - MAX_COMMITS_TO_SHOW;
+                    notification.append("and " + (commits.getIsLastPage() ? moreCommits : (moreCommits + "+")) + " more...");
+                    notification.append("\n");
                 }
             }
 
