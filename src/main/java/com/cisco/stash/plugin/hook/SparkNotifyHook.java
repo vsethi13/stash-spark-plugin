@@ -16,6 +16,7 @@ import com.atlassian.stash.util.Operation;
 import com.atlassian.stash.util.Page;
 import com.atlassian.stash.util.PageRequestImpl;
 import com.cisco.stash.plugin.Notifier;
+import com.cisco.stash.plugin.pojo.KeyValue;
 import com.cisco.stash.plugin.pojo.RefType;
 import com.cisco.stash.plugin.publisher.SparkPublisher;
 import org.apache.commons.lang.StringUtils;
@@ -87,8 +88,8 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
      */
     private StringBuilder createRefChangeNotification(RepositoryHookContext repositoryHookContext, Collection<RefChange> refChanges){
         StringBuilder notification = new StringBuilder(1024);
-        Map<String, String> commitLinks = new HashMap<String, String>();
-        Map<String, String> addedRefs = new HashMap<String, String>();
+        List<KeyValue> commitLinks = new ArrayList<KeyValue>();
+        List<KeyValue> addedRefs = new ArrayList<KeyValue>();
         StashUser stashUser = stashAuthenticationContext.getCurrentUser();
         Repository repository = repositoryHookContext.getRepository();
         notification.append(stashUser.getDisplayName() + " ");
@@ -116,7 +117,7 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
 
             if (refChange.getType() == RefChangeType.ADD) {
                 notification.append("New " + refType + " \"" + displayRefId + "\"" + " has been added to the repo");
-                addedRefs.put(displayRefId, navBuilder.repo(repository).browse().atRevision(refChange.getRefId()).buildAbsolute());
+                addedRefs.add(new KeyValue(displayRefId, navBuilder.repo(repository).browse().atRevision(refChange.getRefId()).buildAbsolute()));
                 notification.append("\n");
             } else if (refChange.getType() == RefChangeType.DELETE) {
                 notification.append("The " + refType + " \"" + displayRefId + "\"" + " has been deleted from the repo");
@@ -133,13 +134,13 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
 
                 Page<Commit> commits = commitService.getCommitsBetween(commitsBetweenRequest, PAGE_REQUEST);
                 SortedMap<Integer, Commit> commitMap = commits.getOrdinalIndexedValues();
-                int reverseCommitCounter = MAX_COMMITS_TO_SHOW;
+                int reverseCommitCounter = commits.getSize() < MAX_COMMITS_TO_SHOW ? commits.getSize() : MAX_COMMITS_TO_SHOW;
                 while(reverseCommitCounter > 0){
-                    Commit commit = commitMap.get(Integer.valueOf(reverseCommitCounter));
-                    notification.append("- " + commit.getMessage() + "(" + commit.getDisplayId() + ") ");
+                    Commit commit = commitMap.get(Integer.valueOf(reverseCommitCounter-1));
+                    notification.append("- " + commit.getMessage() + " (" + commit.getDisplayId() + ") ");
 //                    notification.append("@ " + commit.getAuthorTimestamp());
                     notification.append("\n");
-                    commitLinks.put(commit.getDisplayId(), navBuilder.repo(repository).commit(commit.getId()).buildConfigured());
+                    commitLinks.add(new KeyValue(commit.getDisplayId(), navBuilder.repo(repository).commit(commit.getId()).buildConfigured()));
                     reverseCommitCounter--;
                 }
                 if(commits.getSize() > MAX_COMMITS_TO_SHOW) {
@@ -152,9 +153,10 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
         }
         notification.append("Repo URL: \n" + navBuilder.repo(repository).buildConfigured());
         notification.append("\n");
+
         if(commitLinks.size() > 0) {
             notification.append("Commit URL(s): \n");
-            for (Map.Entry<String, String> commitEntry : commitLinks.entrySet()) {
+            for (KeyValue commitEntry : commitLinks) {
                 notification.append("- " + commitEntry.getKey() + ": " + commitEntry.getValue());
                 notification.append("\n");
             }
@@ -162,7 +164,7 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
 
         if(addedRefs.size() > 0) {
             notification.append("Ref URL(s): \n");
-            for(Map.Entry<String, String> addRefEntry : addedRefs.entrySet()){
+            for(KeyValue addRefEntry : addedRefs){
                 notification.append("- " + addRefEntry.getKey() + ": " + addRefEntry.getValue());
                 notification.append("\n");
             }
