@@ -9,7 +9,7 @@ Action Items:
 	- [Done] ref updation (commits and merge)
 	- [Done] commit info
 	- [Done] Pull Request activity on that repo
-	- [ToDo] Limit commit info (when it gets huge)
+	- [Done] Limit commit info (when it gets huge)
 
 - [Done] Implement a UI to get Cisco Spark configuration details (room name)
 
