@@ -138,12 +138,13 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
 
                 Page<Commit> commits = commitService.getCommitsBetween(commitsBetweenRequest, PAGE_REQUEST);
                 SortedMap<Integer, Commit> commitMap = commits.getOrdinalIndexedValues();
+                //Don't publish the notification if it's a PR merge (merge commit is always the first commit in order)
+                if(commitMap.get(Integer.valueOf(0)).getMessage().startsWith(MERGE_PR_COMMIT_MSG)){
+                    return null;
+                }
                 int reverseCommitCounter = commits.getSize() < MAX_COMMITS_TO_SHOW ? commits.getSize() : MAX_COMMITS_TO_SHOW;
                 while(reverseCommitCounter > 0){
                     Commit commit = commitMap.get(Integer.valueOf(reverseCommitCounter-1));
-                    //Don't publish the notification if it's a PR merge
-                    if(commit.getMessage().startsWith(MERGE_PR_COMMIT_MSG))
-                        return null;
                     notification.append("- " + commit.getMessage() + " (" + commit.getDisplayId() + ") ");
 //                    notification.append("@ " + commit.getAuthorTimestamp());
                     notification.append("\n");
