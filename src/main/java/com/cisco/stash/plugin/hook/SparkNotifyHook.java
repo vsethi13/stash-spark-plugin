@@ -134,8 +134,8 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
 
                 Page<Commit> commits = commitService.getCommitsBetween(commitsBetweenRequest, PAGE_REQUEST);
                 SortedMap<Integer, Commit> commitMap = commits.getOrdinalIndexedValues();
-                int reverseCommitCounter = commits.getSize() < MAX_COMMITS_TO_SHOW ? commits.getSize() : MAX_COMMITS_TO_SHOW;
-                while(reverseCommitCounter > 0){
+                int reverseCommitCounter = commits.getSize();
+                while(reverseCommitCounter > (commits.getSize() > MAX_COMMITS_TO_SHOW ? commits.getSize() - MAX_COMMITS_TO_SHOW : 0)){
                     Commit commit = commitMap.get(Integer.valueOf(reverseCommitCounter-1));
                     notification.append("- " + commit.getMessage() + " (" + commit.getDisplayId() + ") ");
 //                    notification.append("@ " + commit.getAuthorTimestamp());
