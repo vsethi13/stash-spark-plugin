@@ -97,7 +97,7 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
         StashUser stashUser = stashAuthenticationContext.getCurrentUser();
         Repository repository = repositoryHookContext.getRepository();
         notification.append(stashUser.getDisplayName() + " ");
-        notification.append("committed to " + refChanges.size() +  ((refChanges.size() > 1) ? " branches " : " branch "));
+        notification.append("committed to " + refChanges.size() +  ((refChanges.size() > 1) ? " refs " : " ref "));
         notification.append("at " + "\"" + repository.getProject().getName() + "/" + repository.getName() + "\"");
         notification.append("\n");
 
