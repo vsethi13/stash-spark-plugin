@@ -1,16 +1,16 @@
 package com.cisco.stash.plugin.event;
 
 import com.atlassian.event.api.EventListener;
-import com.atlassian.stash.comment.CommentAction;
-import com.atlassian.stash.event.pull.*;
-import com.atlassian.stash.nav.NavBuilder;
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.pull.PullRequestAction;
-import com.atlassian.stash.pull.PullRequestParticipant;
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.scm.git.GitRefPattern;
-import com.atlassian.stash.setting.Settings;
-import com.atlassian.stash.user.StashUser;
+import com.atlassian.bitbucket.comment.CommentAction;
+import com.atlassian.bitbucket.event.pull.*;
+import com.atlassian.bitbucket.nav.NavBuilder;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.pull.PullRequestAction;
+import com.atlassian.bitbucket.pull.PullRequestParticipant;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.scm.git.GitRefPattern;
+import com.atlassian.bitbucket.setting.Settings;
+import com.atlassian.bitbucket.user.ApplicationUser;
 import com.cisco.stash.plugin.Notifier;
 import com.cisco.stash.plugin.service.SettingsService;
 import org.apache.commons.lang.StringUtils;
@@ -106,7 +106,7 @@ public class PullRequestEventListener {
         StringBuilder notification = new StringBuilder(256);
         PullRequest pullRequest = event.getPullRequest();
         Repository repository = pullRequest.getToRef().getRepository();
-        StashUser stashUser = event.getUser();
+        ApplicationUser stashUser = event.getUser();
 
         //If event is related to a PR comment
         if(event.getAction() == PullRequestAction.COMMENTED) {

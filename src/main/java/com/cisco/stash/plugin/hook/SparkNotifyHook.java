@@ -1,22 +1,22 @@
 package com.cisco.stash.plugin.hook;
 
-import com.atlassian.stash.commit.Commit;
-import com.atlassian.stash.commit.CommitService;
-import com.atlassian.stash.commit.CommitsBetweenRequest;
-import com.atlassian.stash.hook.repository.AsyncPostReceiveRepositoryHook;
-import com.atlassian.stash.hook.repository.RepositoryHookContext;
-import com.atlassian.stash.nav.NavBuilder;
-import com.atlassian.stash.repository.RefChange;
-import com.atlassian.stash.repository.RefChangeType;
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.scm.git.GitRefPattern;
-import com.atlassian.stash.setting.RepositorySettingsValidator;
-import com.atlassian.stash.setting.Settings;
-import com.atlassian.stash.setting.SettingsValidationErrors;
-import com.atlassian.stash.user.StashAuthenticationContext;
-import com.atlassian.stash.user.StashUser;
-import com.atlassian.stash.util.Page;
-import com.atlassian.stash.util.PageRequestImpl;
+import com.atlassian.bitbucket.commit.Commit;
+import com.atlassian.bitbucket.commit.CommitService;
+import com.atlassian.bitbucket.commit.CommitsBetweenRequest;
+import com.atlassian.bitbucket.hook.repository.AsyncPostReceiveRepositoryHook;
+import com.atlassian.bitbucket.hook.repository.RepositoryHookContext;
+import com.atlassian.bitbucket.nav.NavBuilder;
+import com.atlassian.bitbucket.repository.RefChange;
+import com.atlassian.bitbucket.repository.RefChangeType;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.scm.git.GitRefPattern;
+import com.atlassian.bitbucket.setting.RepositorySettingsValidator;
+import com.atlassian.bitbucket.setting.Settings;
+import com.atlassian.bitbucket.setting.SettingsValidationErrors;
+import com.atlassian.bitbucket.auth.AuthenticationContext;
+import com.atlassian.bitbucket.user.ApplicationUser;
+import com.atlassian.bitbucket.util.Page;
+import com.atlassian.bitbucket.util.PageRequestImpl;
 import com.cisco.stash.plugin.Notifier;
 import com.cisco.stash.plugin.pojo.KeyValue;
 import com.cisco.stash.plugin.pojo.RefType;
@@ -31,7 +31,7 @@ import java.util.*;
 public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, RepositorySettingsValidator {
 
     private CommitService commitService;
-    private StashAuthenticationContext stashAuthenticationContext;
+    private AuthenticationContext stashAuthenticationContext;
     private NavBuilder navBuilder;
     private SettingsService settingsService;
 
@@ -42,7 +42,7 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
 
     private static final PageRequestImpl PAGE_REQUEST = new PageRequestImpl(0, MAX_COMMITS);
 
-    public SparkNotifyHook(StashAuthenticationContext stashAuthenticationContext, CommitService commitService, NavBuilder navBuilder, SettingsService settingsService) {
+    public SparkNotifyHook(AuthenticationContext stashAuthenticationContext, CommitService commitService, NavBuilder navBuilder, SettingsService settingsService) {
         this.commitService = commitService;
         this.stashAuthenticationContext = stashAuthenticationContext;
         this.settingsService = settingsService;
@@ -94,7 +94,7 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
         StringBuilder notification = new StringBuilder(1024);
         List<KeyValue> commitLinks = new ArrayList<KeyValue>();
         List<KeyValue> addedRefs = new ArrayList<KeyValue>();
-        StashUser stashUser = stashAuthenticationContext.getCurrentUser();
+        ApplicationUser stashUser = stashAuthenticationContext.getCurrentUser();
         Repository repository = repositoryHookContext.getRepository();
         notification.append(stashUser.getDisplayName() + " ");
         notification.append("committed to " + refChanges.size() +  ((refChanges.size() > 1) ? " refs " : " ref "));

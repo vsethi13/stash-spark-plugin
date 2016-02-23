@@ -1,7 +1,7 @@
 package com.cisco.stash.plugin.service;
 
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.setting.Settings;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.setting.Settings;
 
 /**
  * Created by Sagar on 01/06/15.
