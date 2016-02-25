@@ -42,12 +42,12 @@ public class PullRequestEventListener {
     }
 
     @EventListener
-    public void onPullRequestApproved(PullRequestApprovedEvent event) {
+    public void onPullRequestApproved(PullRequestParticipantApprovedEvent event) {
         handlePullRequestEvent(event);
     }
 
     @EventListener
-    public void onPullRequestUnapproved(PullRequestUnapprovedEvent event) {
+    public void onPullRequestUnapproved(PullRequestParticipantUnapprovedEvent event) {
         handlePullRequestEvent(event);
     }
 

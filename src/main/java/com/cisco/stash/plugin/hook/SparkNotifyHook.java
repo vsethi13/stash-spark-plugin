@@ -107,21 +107,21 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
         for(RefChange refChange : refChanges){
 
             refType = RefType.DEFAULT;
-            displayRefId = refChange.getRefId();
+            displayRefId = refChange.getRef().getId();
 
             if(getRefType(refChange).equals(RefType.BRANCH)){
                 refType = RefType.BRANCH;
-                displayRefId = StringUtils.removeStart(refChange.getRefId(), GitRefPattern.HEADS.getPath());
+                displayRefId = StringUtils.removeStart(refChange.getRef().getId(), GitRefPattern.HEADS.getPath());
             }
 
             else if(getRefType(refChange).equals(RefType.TAG)){
                 refType = RefType.TAG;
-                displayRefId = StringUtils.removeStart(refChange.getRefId(), GitRefPattern.TAGS.getPath());
+                displayRefId = StringUtils.removeStart(refChange.getRef().getId(), GitRefPattern.TAGS.getPath());
             }
 
             if (refChange.getType() == RefChangeType.ADD) {
                 notification.append("New " + refType + " \"" + displayRefId + "\"" + " has been added to the repo");
-                addedRefs.add(new KeyValue(displayRefId, navBuilder.repo(repository).browse().atRevision(refChange.getRefId()).buildAbsolute()));
+                addedRefs.add(new KeyValue(displayRefId, navBuilder.repo(repository).browse().atRevision(refChange.getRef().getId()).buildAbsolute()));
                 notification.append("\n");
             } else if (refChange.getType() == RefChangeType.DELETE) {
                 notification.append("The " + refType + " \"" + displayRefId + "\"" + " has been deleted from the repo");
@@ -192,9 +192,9 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
      * @return
      */
     private String getRefType(RefChange ref){
-        if (ref.getRefId().startsWith(GitRefPattern.HEADS.getPath()))
+        if (ref.getRef().getId().startsWith(GitRefPattern.HEADS.getPath()))
             return RefType.BRANCH;
-        else if(ref.getRefId().startsWith(GitRefPattern.TAGS.getPath()))
+        else if(ref.getRef().getId().startsWith(GitRefPattern.TAGS.getPath()))
             return RefType.TAG;
         return RefType.DEFAULT;
     }
