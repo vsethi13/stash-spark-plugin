@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.cisco.stash.plugin</groupId>
     <artifactId>spark-push-notify</artifactId>
-    <version>1.2.3</version>
+    <version>1.2.4</version>
     <organization>
         <name>Cisco Systems</name>
         <url>http://www.cisco.com/</url>
@@ -134,10 +134,13 @@
                             <dataVersion>${bitbucket.data.version}</dataVersion>
                         </product>
                     </products>
+                    <enableQuickReload>true</enableQuickReload>
+                    <enableFastdev>false</enableFastdev>
                 </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
                 <configuration>
                     <source>1.7</source>
                     <target>1.7</target>
@@ -146,11 +149,11 @@
         </plugins>
     </build>
     <properties>
-        <bitbucket.version>4.3.2</bitbucket.version>
-        <bitbucket.data.version>4.3.2</bitbucket.data.version>
-        <amps.version>6.2.1</amps.version>
+        <bitbucket.version>4.12.0</bitbucket.version>
+        <bitbucket.data.version>4.12.0</bitbucket.data.version>
+        <amps.version>6.2.9</amps.version>
         <plugin.testrunner.version>1.2.3</plugin.testrunner.version>
-        <atlassian.spring.scanner.version>1.2.6</atlassian.spring.scanner.version>
+        <atlassian.spring.scanner.version>2.1.1</atlassian.spring.scanner.version>
         <!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
         <atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
     </properties>

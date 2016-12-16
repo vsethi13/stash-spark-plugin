@@ -14,7 +14,7 @@ public class SparkPublisher implements IPublisher {
 
     //Spark actor details:
     public static final String USERNAME = "stash-platform";
-    public static final String PASSWORD = "2.c7txNI$8@kw,M1k6o=B16!8=hILS*T";
+    public static final String PASSWORD = "ya41~:q(NMmgUwQ^0P2L;{879g7iGA{-";
     public static final String STASH_ACTOR_ID = "119845d5-144a-4e16-baff-5a0c9d530957";
     public static final String CLIENT_ID = "C118c5ea0db6cb8ee42428d62b2949f84f181081313f2f9eea08eff1599c16c39";
     public static final String CLIENT_SECRET = "9931beebba9fa019130b048a508fa1222263ef2eafc87fc98bc4a09308acfc01";
