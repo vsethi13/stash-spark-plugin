@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.cisco.stash.plugin</groupId>
     <artifactId>spark-push-notify</artifactId>
-    <version>1.2.4</version>
+    <version>1.2.3.1</version>
     <organization>
         <name>Cisco Systems</name>
         <url>http://www.cisco.com/</url>
@@ -149,8 +149,8 @@
         </plugins>
     </build>
     <properties>
-        <bitbucket.version>4.12.0</bitbucket.version>
-        <bitbucket.data.version>4.12.0</bitbucket.data.version>
+        <bitbucket.version>4.3.2</bitbucket.version>
+        <bitbucket.data.version>4.3.2</bitbucket.data.version>
         <amps.version>6.2.9</amps.version>
         <plugin.testrunner.version>1.2.3</plugin.testrunner.version>
         <atlassian.spring.scanner.version>2.1.1</atlassian.spring.scanner.version>
