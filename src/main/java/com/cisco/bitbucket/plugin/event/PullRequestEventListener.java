@@ -30,7 +30,6 @@ public class PullRequestEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(PullRequestEventListener.class);
 
-
     public PullRequestEventListener(SettingsService settingsService, NavBuilder navBuilder) {
         this.settingsService = settingsService;
         this.navBuilder = navBuilder;

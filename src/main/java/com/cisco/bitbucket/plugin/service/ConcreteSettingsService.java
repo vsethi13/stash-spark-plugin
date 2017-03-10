@@ -1,9 +1,9 @@
 package com.cisco.bitbucket.plugin.service;
 
 import com.atlassian.bitbucket.hook.repository.RepositoryHookService;
+import com.atlassian.bitbucket.permission.Permission;
 import com.atlassian.bitbucket.repository.Repository;
 import com.atlassian.bitbucket.setting.Settings;
-import com.atlassian.bitbucket.permission.Permission;
 import com.atlassian.bitbucket.user.SecurityService;
 import com.atlassian.bitbucket.util.Operation;
 import org.slf4j.Logger;

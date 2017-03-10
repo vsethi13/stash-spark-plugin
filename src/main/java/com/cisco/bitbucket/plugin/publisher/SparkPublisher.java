@@ -41,11 +41,4 @@ public class SparkPublisher implements IPublisher {
         message.setOauthCredentials(creds);
         sparkIntegrationService.publishMessage(message);
     }
-
-    public static void invite(String roomId, String bearerToken) {
-        if (roomId.isEmpty() || bearerToken.isEmpty()) {
-            log.error("roomId and/or bearerToken not found.");
-        }
-        sparkIntegrationService.inviteParticipants(roomId, STASH_ACTOR_ID, bearerToken);
-    }
 }

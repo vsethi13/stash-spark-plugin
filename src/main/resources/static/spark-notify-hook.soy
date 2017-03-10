@@ -15,15 +15,6 @@
         {param errorTexts: $errors ? $errors['roomId'] : null /}
     {/call}
 
-    {call aui.form.textField}
-        {param id: 'bearerToken' /}
-        {param isRequired: true /}
-        {param value: $config ? $config['bearerToken'] : null /}
-        {param labelContent: 'Bearer Token'  /}
-        {param descriptionText: 'Bearer token of the room\'s moderator' /}
-        {param errorTexts: $errors ? $errors['bearerToken'] : null /}
-    {/call}
-
     <br>
     Specify the Cisco Spark room to receive notifications about pushes and merges.
     The moderator of the room will have to provide his/her 'bearer token' to allow Bitbucket to post in the room.

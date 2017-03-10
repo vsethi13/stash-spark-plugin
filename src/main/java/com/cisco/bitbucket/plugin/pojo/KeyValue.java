@@ -5,10 +5,11 @@ package com.cisco.bitbucket.plugin.pojo;
  */
 public class KeyValue {
 
-    String key;
-    String value;
+    private String key;
+    private String value;
 
     public KeyValue() {
+        //default public constructor
     }
 
     public KeyValue(String key, String value) {

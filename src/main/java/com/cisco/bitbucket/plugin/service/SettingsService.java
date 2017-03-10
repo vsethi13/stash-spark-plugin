@@ -8,8 +8,8 @@ import com.atlassian.bitbucket.setting.Settings;
  */
 public interface SettingsService {
 
-    public Settings getSettings(final Repository repository, final String hookKey);
+    Settings getSettings(final Repository repository, final String hookKey);
 
-    public boolean isHookEnabled(final Repository repository, final String hookKey);
+    boolean isHookEnabled(final Repository repository, final String hookKey);
 
 }

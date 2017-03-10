@@ -134,7 +134,7 @@
                             <dataVersion>${bitbucket.data.version}</dataVersion>
                         </product>
                     </products>
-                    <enableQuickReload>false</enableQuickReload>
+                    <enableQuickReload>true</enableQuickReload>
                     <enableFastdev>false</enableFastdev>
                 </configuration>
             </plugin>
