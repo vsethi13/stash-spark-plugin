@@ -36,8 +36,8 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
      */
     @Override
     public void validate(Settings settings, SettingsValidationErrors errors, Repository repository) {
-        if (settings.getString(Notifier.ROOM_ID, "").isEmpty()) {
-            errors.addFieldError(Notifier.ROOM_ID, "'Room Id' field is blank, please supply one");
+        if (settings.getString(Notifier.SPACE_ID, "").isEmpty()) {
+            errors.addFieldError(Notifier.SPACE_ID, "'Space ID' field is blank, please supply one");
         }
     }
 
@@ -53,8 +53,9 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
         Settings repoSettings = settingsService.getSettings(repositoryHookContext.getRepository(), Notifier.REPO_HOOK_KEY);
         if (repoSettings != null) {
             StringBuilder message = refChangeEvent.createRefChangeNotification(repositoryHookContext, refChanges);
-            if (message != null)
-                new Notifier().pushNotification(repoSettings.getString(Notifier.ROOM_ID, ""), message);
+            if (message != null) {
+                new Notifier().pushNotification(repoSettings.getString(Notifier.SPACE_ID, ""), message);
+            }
         }
     }
 }

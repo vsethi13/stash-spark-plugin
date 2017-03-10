@@ -7,18 +7,17 @@
 {template .view}
 
     {call aui.form.textField}
-        {param id: 'roomId' /}
+        {param id: 'spaceId' /}
         {param isRequired: true /}
-        {param value: $config ? $config['roomId'] : null /}
-        {param labelContent: 'Spark Room ID'  /}
-        {param descriptionText: 'Cisco Spark\'s room ID' /}
-        {param errorTexts: $errors ? $errors['roomId'] : null /}
+        {param value: $config ? $config['spaceId'] : null /}
+        {param labelContent: 'Space ID'  /}
+        {param descriptionText: 'Cisco Spark\'s Space ID' /}
+        {param errorTexts: $errors ? $errors['spaceId'] : null /}
     {/call}
 
     <br>
-    Specify the Cisco Spark room to receive notifications about pushes and merges.
-    The moderator of the room will have to provide his/her 'bearer token' to allow Bitbucket to post in the room.
+    Add the bot "CoDE:BitBucket" to your Cisco Spark Space and specify the corresponding Space ID to receive notifications.
     <br><br>
-    Need help getting any of the above values? <a href="https://cisco.jiveon.com/docs/DOC-58263" target="_blank">Click here</a>
+    Need help getting Cisco Spark Space ID? <a href="https://cisco.jiveon.com/docs/DOC-58263" target="_blank">Click here</a>
 
 {/template}

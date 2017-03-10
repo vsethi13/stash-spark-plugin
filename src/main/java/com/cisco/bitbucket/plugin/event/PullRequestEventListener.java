@@ -92,7 +92,7 @@ public class PullRequestEventListener {
         if(repoSettings == null)
             log.info("Settings not found.");
         else {
-            new Notifier().pushNotification(repoSettings.getString(Notifier.ROOM_ID, ""), createPrNotification(event));
+            new Notifier().pushNotification(repoSettings.getString(Notifier.SPACE_ID, ""), createPrNotification(event));
         }
     }
 

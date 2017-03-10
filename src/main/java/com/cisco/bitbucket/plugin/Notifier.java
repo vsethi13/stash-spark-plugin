@@ -14,14 +14,13 @@ public class Notifier {
     public static final String REPO_HOOK_KEY = "com.cisco.bitbucket.plugin.spark-push-notify:spark-notify-hook";
 
     //field keys from the soy template
-    public static final String ROOM_ID = "roomId";
-    public static final String BEARER_TOKEN = "bearerToken";
+    public static final String SPACE_ID = "spaceId";
 
     private static final Logger log = LoggerFactory.getLogger(Notifier.class);
 
-    public void pushNotification(String roomId, StringBuilder notification){
+    public void pushNotification(String spaceId, StringBuilder notification){
 
         IPublisher sparkPublisher = new SparkPublisher();
-        sparkPublisher.publish(roomId, notification.toString());
+        sparkPublisher.publish(spaceId, notification.toString());
     }
 }
