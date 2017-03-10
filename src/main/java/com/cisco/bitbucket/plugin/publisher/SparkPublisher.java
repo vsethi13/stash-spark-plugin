@@ -1,4 +1,4 @@
-package com.cisco.stash.plugin.publisher;
+package com.cisco.bitbucket.plugin.publisher;
 
 import com.cisco.dft.cd.spark.intg.pojo.Actor;
 import com.cisco.dft.cd.spark.intg.pojo.Message;
@@ -23,7 +23,7 @@ public class SparkPublisher implements IPublisher {
 
     public static SparkIntegrationService sparkIntegrationService = new SparkIntegrationService();
 
-    public void publish(String roomId, String notification){
+    public void publish(String roomId, String notification) {
 
         OAuthCredentials creds = new OAuthCredentials();
         creds.setClientID(CLIENT_ID);
@@ -42,8 +42,8 @@ public class SparkPublisher implements IPublisher {
         sparkIntegrationService.publishMessage(message);
     }
 
-    public static void invite(String roomId, String bearerToken){
-        if(roomId.isEmpty() || bearerToken.isEmpty()){
+    public static void invite(String roomId, String bearerToken) {
+        if (roomId.isEmpty() || bearerToken.isEmpty()) {
             log.error("roomId and/or bearerToken not found.");
         }
         sparkIntegrationService.inviteParticipants(roomId, STASH_ACTOR_ID, bearerToken);

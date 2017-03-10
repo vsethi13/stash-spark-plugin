@@ -1,4 +1,4 @@
-package it.com.cisco.stash.plugin.hook;
+package it.com.cisco.bitbucket.plugin.hook;
 
 import com.atlassian.plugins.osgi.test.AtlassianPluginsTestRunner;
 import org.junit.Test;

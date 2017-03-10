@@ -1,4 +1,4 @@
-package ut.com.cisco.stash.plugin.hook;
+package ut.com.cisco.bitbucket.plugin.hook;
 
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;

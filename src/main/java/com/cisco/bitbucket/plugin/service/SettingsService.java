@@ -1,4 +1,4 @@
-package com.cisco.stash.plugin.service;
+package com.cisco.bitbucket.plugin.service;
 
 import com.atlassian.bitbucket.repository.Repository;
 import com.atlassian.bitbucket.setting.Settings;

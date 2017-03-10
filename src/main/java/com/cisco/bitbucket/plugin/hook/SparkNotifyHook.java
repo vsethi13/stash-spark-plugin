@@ -1,4 +1,4 @@
-package com.cisco.stash.plugin.hook;
+package com.cisco.bitbucket.plugin.hook;
 
 import com.atlassian.bitbucket.commit.Commit;
 import com.atlassian.bitbucket.commit.CommitService;
@@ -17,11 +17,11 @@ import com.atlassian.bitbucket.auth.AuthenticationContext;
 import com.atlassian.bitbucket.user.ApplicationUser;
 import com.atlassian.bitbucket.util.Page;
 import com.atlassian.bitbucket.util.PageRequestImpl;
-import com.cisco.stash.plugin.Notifier;
-import com.cisco.stash.plugin.pojo.KeyValue;
-import com.cisco.stash.plugin.pojo.RefType;
-import com.cisco.stash.plugin.publisher.SparkPublisher;
-import com.cisco.stash.plugin.service.SettingsService;
+import com.cisco.bitbucket.plugin.pojo.KeyValue;
+import com.cisco.bitbucket.plugin.Notifier;
+import com.cisco.bitbucket.plugin.pojo.RefType;
+import com.cisco.bitbucket.plugin.publisher.SparkPublisher;
+import com.cisco.bitbucket.plugin.service.SettingsService;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

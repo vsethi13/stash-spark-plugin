@@ -1,4 +1,4 @@
-package com.cisco.stash.plugin.event;
+package com.cisco.bitbucket.plugin.event;
 
 import com.atlassian.event.api.EventListener;
 import com.atlassian.bitbucket.comment.CommentAction;
@@ -11,8 +11,8 @@ import com.atlassian.bitbucket.repository.Repository;
 import com.atlassian.bitbucket.scm.git.GitRefPattern;
 import com.atlassian.bitbucket.setting.Settings;
 import com.atlassian.bitbucket.user.ApplicationUser;
-import com.cisco.stash.plugin.Notifier;
-import com.cisco.stash.plugin.service.SettingsService;
+import com.cisco.bitbucket.plugin.Notifier;
+import com.cisco.bitbucket.plugin.service.SettingsService;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

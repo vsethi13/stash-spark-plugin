@@ -1,8 +1,7 @@
-package com.cisco.stash.plugin;
+package com.cisco.bitbucket.plugin;
 
-import com.cisco.stash.plugin.publisher.IPublisher;
-import com.cisco.stash.plugin.publisher.LogPublisher;
-import com.cisco.stash.plugin.publisher.SparkPublisher;
+import com.cisco.bitbucket.plugin.publisher.IPublisher;
+import com.cisco.bitbucket.plugin.publisher.SparkPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +11,7 @@ import org.slf4j.LoggerFactory;
 public class Notifier {
 
     //key for this repository hook (groupId.artifactId:hookKey)
-    public static final String REPO_HOOK_KEY = "com.cisco.stash.plugin.spark-push-notify:spark-notify-hook";
+    public static final String REPO_HOOK_KEY = "com.cisco.bitbucket.plugin.spark-push-notify:spark-notify-hook";
 
     //field keys from the soy template
     public static final String ROOM_ID = "roomId";

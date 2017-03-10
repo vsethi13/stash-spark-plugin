@@ -1,4 +1,4 @@
-package com.cisco.stash.plugin.pojo;
+package com.cisco.bitbucket.plugin.pojo;
 
 /**
  * Created by Sagar on 21/05/15.
