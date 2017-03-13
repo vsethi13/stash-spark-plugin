@@ -117,6 +117,16 @@
             <artifactId>cd-spark-integration-service</artifactId>
             <version>0.0.6</version>
         </dependency>
+        <dependency>
+            <groupId>com.ciscospark</groupId>
+            <artifactId>ciscospark-client</artifactId>
+            <version>1.0-20170309.141829-3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.json</artifactId>
+            <version>1.0.4</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

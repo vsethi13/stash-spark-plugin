@@ -13,16 +13,15 @@ import com.atlassian.bitbucket.scm.git.GitRefPattern;
 import com.atlassian.bitbucket.user.ApplicationUser;
 import com.atlassian.bitbucket.util.Page;
 import com.atlassian.bitbucket.util.PageRequestImpl;
-import com.cisco.bitbucket.plugin.pojo.KeyValue;
 import com.cisco.bitbucket.plugin.pojo.RefType;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.SortedMap;
 
 /**
@@ -36,11 +35,10 @@ public class RefChangeEvent {
     private NavBuilder navBuilder;
 
     private static final String MERGE_PR_COMMIT_MSG = "Merge pull request #";
+    private static final String NEWLINE = "\n<br>";
     private static final int MAX_COMMITS_TO_SHOW = 5;
     private static final int MAX_COMMITS = 15;
     private static final Logger log = LoggerFactory.getLogger(RefChangeEvent.class);
-
-    private static final PageRequestImpl PAGE_REQUEST = new PageRequestImpl(0, MAX_COMMITS);
 
     public RefChangeEvent(AuthenticationContext authenticationContext, CommitService commitService, NavBuilder navBuilder) {
         this.authenticationContext = authenticationContext;
@@ -55,98 +53,106 @@ public class RefChangeEvent {
      * @param refChanges
      * @return
      */
-    public StringBuilder createRefChangeNotification(RepositoryHookContext repositoryHookContext, Collection<RefChange> refChanges) {
-        StringBuilder notification = new StringBuilder(1024);
-        List<KeyValue> commitLinks = new ArrayList<KeyValue>();
-        List<KeyValue> addedRefs = new ArrayList<KeyValue>();
-        ApplicationUser stashUser = authenticationContext.getCurrentUser();
+    public Map<String, String> createRefChangeNotification(RepositoryHookContext repositoryHookContext, Collection<RefChange> refChanges) {
+        Map<String, String> notificationMap = new LinkedHashMap<>();
+        StringBuilder message = new StringBuilder(512);
+        StringBuilder details = new StringBuilder(2048);
+        ApplicationUser currentUser = authenticationContext.getCurrentUser();
         Repository repository = repositoryHookContext.getRepository();
-        notification.append(stashUser.getDisplayName() + " ");
-        notification.append("committed to " + refChanges.size() + ((refChanges.size() > 1) ? " refs " : " ref "));
-        notification.append("at " + "\"" + repository.getProject().getName() + "/" + repository.getName() + "\"");
-        notification.append("\n");
 
-        String refType;
-        String displayRefId;
+        assert currentUser != null;
+        message.append(currentUser.getDisplayName());
+        message.append(" committed to ").append(refChanges.size()).append((refChanges.size() > 1) ? " refs" : " ref");
+        message.append(" at [").append(repository.getProject().getName()).append("/").append(repository.getName()).append("]");
+        message.append("(").append(navBuilder.repo(repository).buildConfigured()).append(")");
 
         for (RefChange refChange : refChanges) {
-
-            refType = RefType.DEFAULT;
-            displayRefId = refChange.getRef().getId();
-
-            if (getRefType(refChange).equals(RefType.BRANCH)) {
-                refType = RefType.BRANCH;
-                displayRefId = StringUtils.removeStart(refChange.getRef().getId(), GitRefPattern.HEADS.getPath());
-            } else if (getRefType(refChange).equals(RefType.TAG)) {
-                refType = RefType.TAG;
-                displayRefId = StringUtils.removeStart(refChange.getRef().getId(), GitRefPattern.TAGS.getPath());
-            }
-
             if (refChange.getType() == RefChangeType.ADD) {
-                notification.append("New " + refType + " \"" + displayRefId + "\"" + " has been added to the repo");
-                addedRefs.add(new KeyValue(displayRefId, navBuilder.repo(repository).browse().atRevision(refChange.getRef().getId()).buildAbsolute()));
-                notification.append("\n");
+                details.append("New ").append(getRefInfoWithMarkdownFmt(refChange, repository, false))
+                        .append(" has been added to the repo");
+                details.append(NEWLINE);
             } else if (refChange.getType() == RefChangeType.DELETE) {
-                notification.append("The " + refType + " \"" + displayRefId + "\"" + " has been deleted from the repo");
-                notification.append("\n");
+                details.append("The ").append(getRefInfoWithMarkdownFmt(refChange, repository, true))
+                        .append(" has been deleted from the repo");
+                details.append(NEWLINE);
             } else if (refChange.getType() == RefChangeType.UPDATE) {
-                notification.append("On " + refType + " \"" + displayRefId + "\"" + ":");
-                notification.append("\n");
+                details.append("On ").append(getRefInfoWithMarkdownFmt(refChange, repository, false));
+                details.append(NEWLINE);
 
-                CommitsBetweenRequest commitsBetweenRequest;
-                commitsBetweenRequest = new CommitsBetweenRequest.Builder(repository)
-                        .include(refChange.getToHash())
-                        .exclude(refChange.getFromHash())
-                        .build();
-
-                Page<Commit> commits = commitService.getCommitsBetween(commitsBetweenRequest, PAGE_REQUEST);
+                Page<Commit> commits = getLastNCommits(refChange, repository);
                 SortedMap<Integer, Commit> commitMap = commits.getOrdinalIndexedValues();
 
                 //Don't publish the notification if it's a PR merge (merge commit is always the first commit in order)
-                if (commitMap.get(Integer.valueOf(0)).getMessage().startsWith(MERGE_PR_COMMIT_MSG)) {
+                if (commitMap.get(0).getMessage().startsWith(MERGE_PR_COMMIT_MSG)) {
                     return null;
                 }
                 int reverseCommitCounter = commits.getSize();
                 while (reverseCommitCounter > (commits.getSize() > MAX_COMMITS_TO_SHOW ? commits.getSize() - MAX_COMMITS_TO_SHOW : 0)) {
-                    Commit commit = commitMap.get(Integer.valueOf(reverseCommitCounter - 1));
-                    notification.append("- " + commit.getMessage() + " (" + commit.getDisplayId() + ") ");
-//                    notification.append("@ " + commit.getAuthorTimestamp());
-                    notification.append("\n");
-                    commitLinks.add(new KeyValue(commit.getDisplayId(), navBuilder.repo(repository).commit(commit.getId()).buildConfigured()));
+                    Commit commit = commitMap.get(reverseCommitCounter - 1);
+                    details.append(getCommitInfoWithMarkdownFmt(commit, repository));
+                    details.append(NEWLINE);
                     reverseCommitCounter--;
                 }
                 if (commits.getSize() > MAX_COMMITS_TO_SHOW) {
                     int moreCommits = commits.getSize() - MAX_COMMITS_TO_SHOW;
-                    notification.append("and " + (commits.getIsLastPage() ? moreCommits : (moreCommits + "+")) + " more...");
-                    notification.append("\n");
+                    details.append("and ").append(commits.getIsLastPage() ? moreCommits : (moreCommits + "+")).append(" more...");
+                    details.append(NEWLINE);
                 }
             }
-
         }
-        notification.append("Repo URL: \n" + navBuilder.repo(repository).buildConfigured());
-        notification.append("\n");
+        //delete the last NEWLINE
+        details.delete(details.length() - NEWLINE.length(), details.length());
+        notificationMap.put("Message", message.toString());
+        notificationMap.put("Details", details.toString());
+        return notificationMap;
+    }
 
-        if (commitLinks.size() > 0) {
-            notification.append("Commit URL(s): \n");
-            for (KeyValue commitEntry : commitLinks) {
-                notification.append("- " + commitEntry.getKey() + ": " + commitEntry.getValue());
-                notification.append("\n");
-            }
+    /**
+     * gets commit's info in Markdown formatting:
+     * syntax: - commitMessage ([commitDisplayId](commitURL))
+     * example: (ignore quotes)
+     * '- test commit message ((ef5ef861edc](http://localhost:7990/.../commits/ef5ef861edcc6a8d0b6e83c1963be0db78de02ea))'
+     *
+     * @param commit
+     * @param repository
+     * @return
+     */
+    private String getCommitInfoWithMarkdownFmt(Commit commit, Repository repository) {
+        return "- " + commit.getMessage() +
+                " ([" + commit.getDisplayId() + "]" +
+                "(" + navBuilder.repo(repository).commit(commit.getId()).buildConfigured() + "))";
+    }
+
+    /**
+     * gets ref's info in Markdown formatting:
+     * syntax: refType [refName](refURL)
+     * example: (ignore quotes)
+     * 'branch [master](localhost:7990/bitbucket/projects/PROJECT_1/repos/rep_1/browse?at=refs/heads/master)'
+     *
+     * @param refChange
+     * @param repository
+     * @return
+     */
+    private String getRefInfoWithMarkdownFmt(RefChange refChange, Repository repository, boolean deleteFlag) {
+
+        String refType;
+        String displayRefId;
+        if (getRefType(refChange).equals(RefType.BRANCH)) {
+            refType = RefType.BRANCH;
+            displayRefId = StringUtils.removeStart(refChange.getRef().getId(), GitRefPattern.HEADS.getPath());
+        } else if (getRefType(refChange).equals(RefType.TAG)) {
+            refType = RefType.TAG;
+            displayRefId = StringUtils.removeStart(refChange.getRef().getId(), GitRefPattern.TAGS.getPath());
+        } else {
+            refType = RefType.DEFAULT;
+            displayRefId = refChange.getRef().getId();
         }
-
-        if (addedRefs.size() > 0) {
-            notification.append("Ref URL(s): \n");
-            for (KeyValue addRefEntry : addedRefs) {
-                notification.append("- " + addRefEntry.getKey() + ": " + addRefEntry.getValue());
-                notification.append("\n");
-            }
+        if (!deleteFlag) {
+            return refType + " [" + displayRefId + "]" +
+                    "(" + navBuilder.repo(repository).browse().atRevision(refChange.getRef().getId()).buildAbsolute() + ")";
+        } else {
+            return refType + " \"" + displayRefId + "\"";
         }
-
-        int notificationLength = notification.length();
-        if (notification.charAt(notificationLength - 1) == '\n')
-            notification.deleteCharAt(notificationLength - 1);
-
-        return notification;
     }
 
     /**
@@ -156,10 +162,29 @@ public class RefChangeEvent {
      * @return
      */
     private String getRefType(RefChange ref) {
+
         if (ref.getRef().getId().startsWith(GitRefPattern.HEADS.getPath()))
             return RefType.BRANCH;
         else if (ref.getRef().getId().startsWith(GitRefPattern.TAGS.getPath()))
             return RefType.TAG;
         return RefType.DEFAULT;
+    }
+
+    /**
+     * returns last @MAX_COMMITS number of new commits on a ref
+     *
+     * @param refChange
+     * @param repository
+     * @return
+     */
+    private Page<Commit> getLastNCommits(RefChange refChange, Repository repository) {
+
+        PageRequestImpl pageRequest = new PageRequestImpl(0, MAX_COMMITS);
+        CommitsBetweenRequest commitsBetweenRequest;
+        commitsBetweenRequest = new CommitsBetweenRequest.Builder(repository)
+                .include(refChange.getToHash())
+                .exclude(refChange.getFromHash())
+                .build();
+        return commitService.getCommitsBetween(commitsBetweenRequest, pageRequest);
     }
 }

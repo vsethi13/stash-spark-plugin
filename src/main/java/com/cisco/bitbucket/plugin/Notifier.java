@@ -5,6 +5,8 @@ import com.cisco.bitbucket.plugin.publisher.SparkPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+
 /**
  * Created by Sagar on 12/05/15.
  */
@@ -18,9 +20,9 @@ public class Notifier {
 
     private static final Logger log = LoggerFactory.getLogger(Notifier.class);
 
-    public void pushNotification(String spaceId, StringBuilder notification){
+    public void pushNotification(String spaceId, Map<String, String> notificationMap){
 
         IPublisher sparkPublisher = new SparkPublisher();
-        sparkPublisher.publish(spaceId, notification.toString());
+        sparkPublisher.publish(spaceId, notificationMap);
     }
 }

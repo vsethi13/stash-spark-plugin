@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Map;
 
 public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, RepositorySettingsValidator {
 
@@ -52,9 +53,9 @@ public class SparkNotifyHook implements AsyncPostReceiveRepositoryHook, Reposito
 
         Settings repoSettings = settingsService.getSettings(repositoryHookContext.getRepository(), Notifier.REPO_HOOK_KEY);
         if (repoSettings != null) {
-            StringBuilder message = refChangeEvent.createRefChangeNotification(repositoryHookContext, refChanges);
-            if (message != null) {
-                new Notifier().pushNotification(repoSettings.getString(Notifier.SPACE_ID, ""), message);
+            Map<String, String> notificationMap = refChangeEvent.createRefChangeNotification(repositoryHookContext, refChanges);
+            if (notificationMap != null) {
+                new Notifier().pushNotification(repoSettings.getString(Notifier.SPACE_ID, ""), notificationMap);
             }
         }
     }
