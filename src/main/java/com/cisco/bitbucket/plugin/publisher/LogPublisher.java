@@ -12,11 +12,6 @@ public class LogPublisher implements IPublisher {
 
     private static final Logger log = LoggerFactory.getLogger(SparkPublisher.class);
 
-    public void publish(String destination, String message) {
-        System.out.println(destination);
-        System.out.println(message);
-    }
-
     @Override
     public void publish(String destination, Map<String, String> notificationMessage) {
         log.info("Destination: {}", destination);

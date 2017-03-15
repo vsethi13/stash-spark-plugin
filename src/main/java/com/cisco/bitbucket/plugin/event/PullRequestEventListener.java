@@ -30,7 +30,6 @@ public class PullRequestEventListener {
     private SettingsService settingsService;
     private NavBuilder navBuilder;
 
-    private static final String NEWLINE = "\n<br>";
     private static final Logger log = LoggerFactory.getLogger(PullRequestEventListener.class);
 
     public PullRequestEventListener(SettingsService settingsService, NavBuilder navBuilder) {
@@ -44,12 +43,19 @@ public class PullRequestEventListener {
     }
 
     @EventListener
-    public void onPullRequestApproved(PullRequestParticipantApprovedEvent event) {
+    public void onPullRequestParticipantApproved(PullRequestParticipantApprovedEvent event) {
         handlePullRequestEvent(event);
     }
 
     @EventListener
-    public void onPullRequestUnapproved(PullRequestParticipantUnapprovedEvent event) {
+    public void onPullRequestParticipantReviewed(PullRequestParticipantReviewedEvent event) {
+        if (("reviewed").equalsIgnoreCase(event.getAction().toString())) {
+            handlePullRequestEvent(event);
+        }
+    }
+
+    @EventListener
+    public void onPullRequestParticipantUnapproved(PullRequestParticipantUnapprovedEvent event) {
         handlePullRequestEvent(event);
     }
 
@@ -68,11 +74,6 @@ public class PullRequestEventListener {
         handlePullRequestEvent(event);
     }
 
-//    @EventListener
-//    public void onPullRequestRescoped(PullRequestRescopedEvent event) {
-//        handlePullRequestEvent(event);
-//    }
-
     @EventListener
     public void onPullRequestMerged(PullRequestMergedEvent event) {
         handlePullRequestEvent(event);
@@ -83,8 +84,8 @@ public class PullRequestEventListener {
         handlePullRequestEvent(event);
     }
 
-    //get settings to check if the room name is present (check if the hook is enabled or not)
-    //post to the room only if hook is enabled and room name exists
+    //get settings to check if the space name is present (check if the hook is enabled or not)
+    //post to the space only if hook is enabled and space name exists
     private void handlePullRequestEvent(PullRequestEvent event) {
 
         final Repository repository = event.getPullRequest().getToRef().getRepository();
@@ -104,21 +105,24 @@ public class PullRequestEventListener {
      */
     private Map<String, String> createPrNotification(PullRequestEvent event) {
         Map<String, String> notificationMap = new LinkedHashMap<>();
-        StringBuilder notification = new StringBuilder(256);
         PullRequest pullRequest = event.getPullRequest();
         Repository repository = pullRequest.getToRef().getRepository();
         ApplicationUser user = event.getUser();
 
         //If event is related to a PR comment
         if (event.getAction() == PullRequestAction.COMMENTED) {
+            StringBuilder message = new StringBuilder(512);
+            StringBuilder comment = new StringBuilder(1024);
+
             PullRequestCommentEvent commentEvent = (PullRequestCommentEvent) event;
-            notification.append(user.getDisplayName() + " " + commentEvent.getCommentAction().toString().toLowerCase());
-            notification.append(commentEvent.getCommentAction().toString().equals(String.valueOf(CommentAction.REPLIED)) ? " with a comment" : " a comment");
-            notification.append(" on pull request " + "#" + pullRequest.getId());
-            notification.append(" in \"" + repository.getProject().getName() + "/" + repository.getName() + "\"");
-            notification.append(NEWLINE);
-            notification.append("Comment: " + commentEvent.getComment().getText());
-            notification.append(NEWLINE);
+            message.append(user.getDisplayName()).append(" ").append(commentEvent.getCommentAction().toString().toLowerCase());
+            message.append(commentEvent.getCommentAction().toString().equals(String.valueOf(CommentAction.REPLIED)) ? " with a comment" : " a comment");
+            message.append(" on pull request ").append(getPrInfoWithMarkdownFmt(repository, pullRequest));
+            message.append(" in ").append(getRepoInfoWithMarkdownFmt(repository));
+            comment.append(commentEvent.getComment().getText());
+
+            notificationMap.put("Message", message.toString());
+            notificationMap.put("Comment", comment.toString());
 
             //for all other events other than "COMMENT" event
         } else {
@@ -144,7 +148,7 @@ public class PullRequestEventListener {
             //Getting PR reviewers info:
             Set<PullRequestParticipant> pullRequestParticipants = pullRequest.getReviewers();
             if (!pullRequestParticipants.isEmpty()) {
-                String reviewerStr = pullRequestParticipants.size() > 1 ? "Reviewers: " : "Reviewer: ";
+                String reviewerStr = pullRequestParticipants.size() > 1 ? "Reviewers" : "Reviewer";
                 reviewers.append(pullRequestParticipants.stream()
                         .map(PullRequestParticipant::getUser)
                         .map(ApplicationUser::getDisplayName)

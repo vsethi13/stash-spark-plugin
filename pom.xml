@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.cisco.bitbucket.plugin</groupId>
     <artifactId>spark-push-notify</artifactId>
-    <version>1.2.4</version>
+    <version>1.2.5</version>
     <organization>
         <name>Cisco Systems</name>
         <url>http://www.cisco.com/</url>
     </organization>
     <name>spark-push-notify</name>
-    <description>This is the com.cisco.bitbucket.plugin:spark-push-notify plugin for Atlassian Bitbucket Server.</description>
+    <description>This is the com.cisco.bitbucket.plugin:spark-push-notify plugin for Atlassian Bitbucket Server.
+    </description>
     <packaging>atlassian-plugin</packaging>
     <dependencyManagement>
         <dependencies>
@@ -113,11 +115,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.cisco.dft.cd.spark.intg.service</groupId>
-            <artifactId>cd-spark-integration-service</artifactId>
-            <version>0.0.6</version>
-        </dependency>
-        <dependency>
             <groupId>com.ciscospark</groupId>
             <artifactId>ciscospark-client</artifactId>
             <version>1.0-20170309.141829-3</version>
@@ -161,7 +158,7 @@
     <properties>
         <bitbucket.version>4.12.0</bitbucket.version>
         <bitbucket.data.version>4.12.0</bitbucket.data.version>
-        <amps.version>6.2.9</amps.version>
+        <amps.version>6.2.11</amps.version>
         <plugin.testrunner.version>1.2.3</plugin.testrunner.version>
         <atlassian.spring.scanner.version>2.1.1</atlassian.spring.scanner.version>
         <!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
