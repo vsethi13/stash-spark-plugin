@@ -115,7 +115,7 @@ public class PullRequestEventListener {
             StringBuilder comment = new StringBuilder(1024);
 
             PullRequestCommentEvent commentEvent = (PullRequestCommentEvent) event;
-            message.append(user.getDisplayName()).append(" ").append(commentEvent.getCommentAction().toString().toLowerCase());
+            message.append(getUserInfoWithMarkdownFmt(user)).append(" ").append(commentEvent.getCommentAction().toString().toLowerCase());
             message.append(commentEvent.getCommentAction().toString().equals(String.valueOf(CommentAction.REPLIED)) ? " with a comment" : " a comment");
             message.append(" on pull request ").append(getPrInfoWithMarkdownFmt(repository, pullRequest));
             message.append(" in ").append(getRepoInfoWithMarkdownFmt(repository));
@@ -132,7 +132,7 @@ public class PullRequestEventListener {
             StringBuilder reviewers = new StringBuilder(128);
 
             message.append("Pull Request ").append(getPrInfoWithMarkdownFmt(repository, pullRequest));
-            message.append(" ").append(event.getAction().toString().toLowerCase()).append(" by ").append(user.getDisplayName());
+            message.append(" ").append(event.getAction().toString().toLowerCase()).append(" by ").append(getUserInfoWithMarkdownFmt(user));
             message.append(" in ").append(getRepoInfoWithMarkdownFmt(repository));
 
             title.append(pullRequest.getTitle());
@@ -158,6 +158,20 @@ public class PullRequestEventListener {
             }
         }
         return notificationMap;
+    }
+
+    /**
+     * gets commit's info in Markdown formatting:
+     * syntax: [userDisplayName] (CDA Developer Url)
+     * example: (ignore quotes)
+     * '[Vivek Sethi] (https://cdanalytics.cisco.com/developer/developer/vivekse/summary)'
+     *
+     * @param user
+     * @return
+     */
+    private String getUserInfoWithMarkdownFmt(ApplicationUser user) {
+        return "[" + user.getDisplayName() + "]" +
+                "(" + "https://cdanalytics.cisco.com/developer/developer/" + user.getSlug() + "/summary" + ")";
     }
 
     /**

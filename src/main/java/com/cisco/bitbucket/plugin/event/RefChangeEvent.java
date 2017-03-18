@@ -61,7 +61,7 @@ public class RefChangeEvent {
         Repository repository = repositoryHookContext.getRepository();
 
         assert currentUser != null;
-        message.append(currentUser.getDisplayName());
+        message.append(getUserInfoWithMarkdownFmt(currentUser));
         message.append(" committed to ").append(refChanges.size()).append((refChanges.size() > 1) ? " refs" : " ref");
         message.append(" at [").append(repository.getProject().getName()).append("/").append(repository.getName()).append("]");
         message.append("(").append(navBuilder.repo(repository).buildConfigured()).append(")");
@@ -109,9 +109,23 @@ public class RefChangeEvent {
 
     /**
      * gets commit's info in Markdown formatting:
+     * syntax: [userDisplayName] (CDA Developer Url)
+     * example: (ignore quotes)
+     * '[Vivek Sethi] (https://cdanalytics.cisco.com/developer/developer/vivekse/summary)'
+     *
+     * @param user
+     * @return
+     */
+    private String getUserInfoWithMarkdownFmt(ApplicationUser user) {
+        return "[" + user.getDisplayName() + "]" +
+                "(" + "https://cdanalytics.cisco.com/developer/developer/" + user.getSlug() + "/summary" + ")";
+    }
+
+    /**
+     * gets commit's info in Markdown formatting:
      * syntax: - commitMessage ([commitDisplayId](commitURL))
      * example: (ignore quotes)
-     * '- test commit message ((ef5ef861edc](http://localhost:7990/.../commits/ef5ef861edcc6a8d0b6e83c1963be0db78de02ea))'
+     * '- test commit message (([ef5ef861edc](http://localhost:7990/.../commits/ef5ef861edcc6a8d0b6e83c1963be0db78de02ea))'
      *
      * @param commit
      * @param repository

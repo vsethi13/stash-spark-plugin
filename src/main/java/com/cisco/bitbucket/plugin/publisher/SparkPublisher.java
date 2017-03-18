@@ -40,7 +40,7 @@ public class SparkPublisher implements IPublisher {
             notification.append(entry.getValue());
             notification.append(NEWLINE);
         }
-        notification.append("\n\n<br>");
+        notification.append(NEWLINE);
         return notification.toString();
     }
 }
