@@ -63,7 +63,7 @@ public class RefChangeEvent {
         assert currentUser != null;
         message.append(getUserInfoWithMarkdownFmt(currentUser));
         message.append(" committed to ").append(refChanges.size()).append((refChanges.size() > 1) ? " refs" : " ref");
-        message.append(" at [").append(repository.getProject().getName()).append("/").append(repository.getName()).append("]");
+        message.append(" at [").append(repository.getName()).append("]");
         message.append("(").append(navBuilder.repo(repository).buildConfigured()).append(")");
 
         for (RefChange refChange : refChanges) {
