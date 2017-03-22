@@ -2,7 +2,6 @@ package com.cisco.bitbucket.plugin.event;
 
 import com.atlassian.bitbucket.comment.CommentAction;
 import com.atlassian.bitbucket.event.pull.*;
-import com.atlassian.bitbucket.nav.NavBuilder;
 import com.atlassian.bitbucket.pull.PullRequest;
 import com.atlassian.bitbucket.pull.PullRequestAction;
 import com.atlassian.bitbucket.pull.PullRequestParticipant;
@@ -13,6 +12,7 @@ import com.atlassian.bitbucket.user.ApplicationUser;
 import com.atlassian.event.api.EventListener;
 import com.cisco.bitbucket.plugin.Notifier;
 import com.cisco.bitbucket.plugin.service.SettingsService;
+import com.cisco.bitbucket.plugin.utils.MarkDownInfoUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,13 +28,13 @@ import java.util.stream.Collectors;
 public class PullRequestEventListener {
 
     private SettingsService settingsService;
-    private NavBuilder navBuilder;
+    private MarkDownInfoUtil markDownInfoUtil;
 
     private static final Logger log = LoggerFactory.getLogger(PullRequestEventListener.class);
 
-    public PullRequestEventListener(SettingsService settingsService, NavBuilder navBuilder) {
+    public PullRequestEventListener(SettingsService settingsService, MarkDownInfoUtil markDownInfoUtil) {
         this.settingsService = settingsService;
-        this.navBuilder = navBuilder;
+        this.markDownInfoUtil = markDownInfoUtil;
     }
 
     @EventListener
@@ -115,10 +115,10 @@ public class PullRequestEventListener {
             StringBuilder comment = new StringBuilder(1024);
 
             PullRequestCommentEvent commentEvent = (PullRequestCommentEvent) event;
-            message.append(getUserInfoWithMarkdownFmt(user)).append(" ").append(commentEvent.getCommentAction().toString().toLowerCase());
+            message.append(markDownInfoUtil.getUserInfoWithMarkdownFmt(user)).append(" ").append(commentEvent.getCommentAction().toString().toLowerCase());
             message.append(commentEvent.getCommentAction().toString().equals(String.valueOf(CommentAction.REPLIED)) ? " with a comment" : " a comment");
-            message.append(" on pull request ").append(getPrInfoWithMarkdownFmt(repository, pullRequest));
-            message.append(" in ").append(getRepoInfoWithMarkdownFmt(repository));
+            message.append(" on pull request ").append(markDownInfoUtil.getPrInfoWithMarkdownFmt(repository, pullRequest));
+            message.append(" in ").append(markDownInfoUtil.getRepoInfoWithMarkdownFmt(repository));
             comment.append(commentEvent.getComment().getText());
 
             notificationMap.put("Message", message.toString());
@@ -131,14 +131,14 @@ public class PullRequestEventListener {
             StringBuilder scope = new StringBuilder(128);
             StringBuilder reviewers = new StringBuilder(128);
 
-            message.append("Pull Request ").append(getPrInfoWithMarkdownFmt(repository, pullRequest));
-            message.append(" ").append(event.getAction().toString().toLowerCase()).append(" by ").append(getUserInfoWithMarkdownFmt(user));
-            message.append(" in ").append(getRepoInfoWithMarkdownFmt(repository));
+            message.append("Pull Request ").append(markDownInfoUtil.getPrInfoWithMarkdownFmt(repository, pullRequest));
+            message.append(" ").append(event.getAction().toString().toLowerCase()).append(" by ").append(markDownInfoUtil.getUserInfoWithMarkdownFmt(user));
+            message.append(" in ").append(markDownInfoUtil.getRepoInfoWithMarkdownFmt(repository));
 
             title.append(pullRequest.getTitle());
 
             scope.append(StringUtils.removeStart(pullRequest.getFromRef().getId(), GitRefPattern.HEADS.getPath()))
-                    .append(" -> ")
+                    .append("** -> **")
                     .append(StringUtils.removeStart(pullRequest.getToRef().getId(), GitRefPattern.HEADS.getPath()));
 
             notificationMap.put("Message", message.toString());
@@ -158,50 +158,5 @@ public class PullRequestEventListener {
             }
         }
         return notificationMap;
-    }
-
-    /**
-     * gets commit's info in Markdown formatting:
-     * syntax: [userDisplayName] (CDA Developer Url)
-     * example: (ignore quotes)
-     * '[Vivek Sethi] (https://cdanalytics.cisco.com/developer/developer/vivekse/summary)'
-     *
-     * @param user
-     * @return
-     */
-    private String getUserInfoWithMarkdownFmt(ApplicationUser user) {
-        return "[" + user.getDisplayName() + "]" +
-                "(" + "https://cdanalytics.cisco.com/developer/developer/" + user.getSlug() + "/summary" + ")";
-    }
-
-    /**
-     * gets repo's info with Markdown formatting:
-     * syntax: [project/repo](repoUrl)
-     * example: (ignore quotes)
-     * '[rep_1](localhost:7990/bitbucket/projects/PROJECT_1/repos/rep_1/browse)'
-     *
-     * @param repository
-     * @return
-     */
-    private String getRepoInfoWithMarkdownFmt(Repository repository) {
-
-        return "[" + repository.getProject().getName() + "/" + repository.getName() + "]" +
-                "(" + navBuilder.repo(repository).buildAbsolute() + ")";
-    }
-
-    /**
-     * gets PR's id with Markdown formatting:
-     * syntax: [#PR Id](PR Url)
-     * example: (ignore quotes)
-     * '[#42](localhost:7990/bitbucket/projects/PROJECT_1/repos/rep_1/pull-requests/42)'
-     *
-     * @param repository
-     * @param pullRequest
-     * @return
-     */
-    private String getPrInfoWithMarkdownFmt(Repository repository, PullRequest pullRequest) {
-
-        return "[#" + pullRequest.getId() + "]" +
-                "(" + navBuilder.repo(repository).pullRequest(pullRequest.getId()).buildAbsolute() + ")";
     }
 }
