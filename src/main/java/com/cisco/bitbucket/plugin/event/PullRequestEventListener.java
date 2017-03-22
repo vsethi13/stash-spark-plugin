@@ -176,7 +176,7 @@ public class PullRequestEventListener {
 
     /**
      * gets repo's info with Markdown formatting:
-     * syntax: [repo](repoUrl)
+     * syntax: [project/repo](repoUrl)
      * example: (ignore quotes)
      * '[rep_1](localhost:7990/bitbucket/projects/PROJECT_1/repos/rep_1/browse)'
      *
@@ -185,7 +185,7 @@ public class PullRequestEventListener {
      */
     private String getRepoInfoWithMarkdownFmt(Repository repository) {
 
-        return "[" + repository.getName() + "]" +
+        return "[" + repository.getProject().getName() + "/" + repository.getName() + "]" +
                 "(" + navBuilder.repo(repository).buildAbsolute() + ")";
     }
 
