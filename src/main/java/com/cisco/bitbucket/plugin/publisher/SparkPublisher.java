@@ -1,10 +1,15 @@
 package com.cisco.bitbucket.plugin.publisher;
 
-import com.ciscospark.Spark;
+import com.cisco.bitbucket.plugin.pojo.SparkNotification;
+import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -12,35 +17,27 @@ import java.util.Map;
  */
 public class SparkPublisher implements IPublisher {
 
-    private Spark spark;
-    private static final String BOT_BEARER_TOKEN = "NjhkNTc3MzUtZDJjMS00MDJjLWExYjAtYzkyYjVmODQ2MjVkNjIwZDcyYjEtZjgy";
-    private static final String NEWLINE = "\n<br>";
-
     private static final Logger log = LoggerFactory.getLogger(SparkPublisher.class);
-
-    public SparkPublisher() {
-        spark = Spark.builder()
-                .baseUrl(URI.create("https://api.ciscospark.com/v1"))
-                .accessToken(BOT_BEARER_TOKEN)
-                .build();
-    }
 
     @Override
     public void publish(String spaceId, Map<String, String> notificationMap) {
-        com.ciscospark.Message message = new com.ciscospark.Message();
-        message.setRoomId(spaceId);
-        message.setMarkdown(prepareNotification(notificationMap));
-        spark.messages().post(message);
-    }
 
-    private String prepareNotification(Map<String, String> notificationMap) {
-        StringBuilder notification = new StringBuilder(4096);
-        for (Map.Entry<String, String> entry : notificationMap.entrySet()) {
-            notification.append("**").append(entry.getKey()).append(":** ");
-            notification.append(entry.getValue());
-            notification.append(NEWLINE);
+        ObjectMapper mapper = new ObjectMapper();
+        SparkNotification sparkNotification = new SparkNotification(spaceId, notificationMap);
+        try {
+            String sparkNotificationJson = mapper.writeValueAsString(sparkNotification);
+            OkHttpClient client = new OkHttpClient();
+            MediaType mediaType = MediaType.parse("application/json");
+            RequestBody body = RequestBody.create(mediaType, sparkNotificationJson);
+            Request request = new Request.Builder()
+                    .url("https://dftapi.cisco.com/code/cda/notification/v1/publish")
+                    .post(body)
+                    .addHeader("content-type", "application/json")
+                    .addHeader("cache-control", "no-cache")
+                    .build();
+            client.newCall(request).execute();
+        } catch (IOException e) {
+            log.error("Failed to push notification to spark", e);
         }
-        notification.append(NEWLINE);
-        return notification.toString();
     }
 }
