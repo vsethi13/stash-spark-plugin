@@ -13,12 +13,13 @@ public class LogPublisher implements IPublisher {
     private static final Logger log = LoggerFactory.getLogger(SparkPublisher.class);
 
     @Override
-    public void publish(String destination, Map<String, String> notificationMessage) {
+    public int publish(String destination, Map<String, String> notificationMessage) {
         log.info("Destination: {}", destination);
         log.info("Notification: \n");
         for (Map.Entry<String, String> entry : notificationMessage.entrySet()) {
             log.info("key: {}", entry.getKey());
             log.info("value: {}", entry.getValue());
         }
+        return 0;
     }
 }

@@ -7,5 +7,5 @@ import java.util.Map;
  */
 public interface IPublisher {
 
-    void publish(String destination, Map<String, String> notificationMessage);
+    int publish(String destination, Map<String, String> notificationMessage);
 }
