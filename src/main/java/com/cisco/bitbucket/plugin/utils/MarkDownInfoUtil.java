@@ -46,7 +46,15 @@ public class MarkDownInfoUtil {
      * @return
      */
     public String getCommitInfoWithMarkdownFmt(Commit commit, Repository repository) {
-        return "- " + commit.getMessage() +
+        String commitMessage = commit.getMessage();
+        String[] commitMessageTokens = commitMessage.split("\\n");
+        commitMessage = commitMessageTokens[0];
+        if (commitMessageTokens.length > 1) {
+            commitMessage = commitMessage.concat("...");
+        }
+        commitMessage = commitMessage.replaceAll("\\*", "\\\\*");
+        commitMessage = commitMessage.replaceAll("#", "\\\\#");
+        return "- " + commitMessage +
                 " ([" + commit.getDisplayId() + "]" +
                 "(" + navBuilder.repo(repository).commit(commit.getId()).buildConfigured() + "))";
     }
